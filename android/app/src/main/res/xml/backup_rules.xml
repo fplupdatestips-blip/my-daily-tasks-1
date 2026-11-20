@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Synced data already lives in Firebase; skip the Firestore cache so a
+     restore never brings back stale data. -->
+<full-backup-content>
+    <exclude domain="database" path="." />
+    <exclude domain="file" path="." />
+</full-backup-content>
