@@ -1,0 +1,112 @@
+@import 'tailwindcss';
+
+/* Design tokens from the mockups (Tokens artboard). Dark values apply with
+   the system setting unless the user picked a theme in Settings. */
+:root {
+  --bg: #f7faf9;
+  --surface: #ffffff;
+  --surface2: #eef4f2;
+  --text: #0f172a;
+  --text2: #475569;
+  --outline: #94a3b8;
+  --divider: #e2e8f0;
+  --primary: #0f766e;
+  --on-primary: #ffffff;
+  --primary-container: #ccfbf1;
+  --on-primary-container: #134e4a;
+  --ring-track: #99f6e4;
+  --done: #047857;
+  --on-done: #ffffff;
+  --streak: #b45309;
+  --amber-tint: #fef3c7;
+  --missed: #b91c1c;
+  --scrim: rgba(15, 23, 42, 0.4);
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --bg: #0e1514;
+  --surface: #1a2321;
+  --surface2: #151d1c;
+  --text: #e2e8f0;
+  --text2: #a3b1c2;
+  --outline: #64748b;
+  --divider: #26302e;
+  --primary: #5eead4;
+  --on-primary: #00201d;
+  --primary-container: #134e4a;
+  --on-primary-container: #ccfbf1;
+  --ring-track: #1f5f59;
+  --done: #6ee7b7;
+  --on-done: #022c22;
+  --streak: #fcd34d;
+  --amber-tint: #3a2a10;
+  --missed: #fca5a5;
+  --scrim: rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface2: var(--surface2);
+  --color-text: var(--text);
+  --color-text2: var(--text2);
+  --color-outline: var(--outline);
+  --color-divider: var(--divider);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary-container: var(--on-primary-container);
+  --color-ring-track: var(--ring-track);
+  --color-done: var(--done);
+  --color-on-done: var(--on-done);
+  --color-streak: var(--streak);
+  --color-amber-tint: var(--amber-tint);
+  --color-missed: var(--missed);
+  --font-sans: 'Roboto Flex', Roboto, system-ui, sans-serif;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.skip-link {
+  position: absolute;
+  left: -999px;
+}
+.skip-link:focus {
+  left: 16px;
+  top: 16px;
+  z-index: 100;
+  background: var(--surface);
+  padding: 8px 12px;
+  border-radius: 8px;
+}
