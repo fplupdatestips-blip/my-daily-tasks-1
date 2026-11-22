@@ -91,6 +91,8 @@ object RepeatEngine {
         if (archived) return NOT_DUE
         if (pausedUntil != null && date <= pausedUntil) return NOT_DUE
         val r = repeat
+        // No date yet: kept in the Someday list until it is given one.
+        if (r.type == RepeatType.SOMEDAY) return NOT_DUE
 
         if (r.type == RepeatType.NONE) {
             val dueDate = r.dueDate ?: date

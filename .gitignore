@@ -11,3 +11,5 @@ android/local.properties
 android/.idea/
 android/*.iml
 .firebase/
+android/core/build/
+android/core/.gradle/

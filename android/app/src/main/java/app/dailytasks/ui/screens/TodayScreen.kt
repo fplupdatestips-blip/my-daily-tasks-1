@@ -312,7 +312,7 @@ fun TaskCard(
             },
     ) {
         Row(Modifier.padding(start = 12.dp, end = 4.dp, top = 12.dp, bottom = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            TaskIconBox(t.icon, t.color)
+            TaskIconBox(t.icon, t.color, image = t.image)
             Box(Modifier.weight(1f)) {
                 Column(
                     Modifier.fillMaxWidth().combinedClickable(onClick = onOpen, onLongClick = { menu = true }, onLongClickLabel = "More actions"),

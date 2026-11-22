@@ -34,6 +34,7 @@ fun taskFromDoc(id: String, d: Map<String, Any?>): Task {
         name = d["name"] as? String ?: "",
         description = d["description"] as? String ?: "",
         icon = d["icon"] as? String ?: "check",
+        image = d["image"] as? String,
         color = d["color"] as? String ?: "teal",
         timeOfDay = d["timeOfDay"].asEnum(TimeOfDay.ANYTIME),
         time = d["time"] as? String,
@@ -87,12 +88,13 @@ fun taskToDoc(t: Task): Map<String, Any?> {
         "name" to t.name,
         "description" to t.description,
         "icon" to t.icon,
+        "image" to t.image,
         "color" to t.color,
         "timeOfDay" to t.timeOfDay.name,
         "time" to t.time,
         "repeat" to repeat,
         "subtasks" to t.subtasks.map { s ->
-            if (r.type == RepeatType.NONE) mapOf("id" to s.id, "title" to s.title, "done" to s.done) else mapOf("id" to s.id, "title" to s.title)
+            if (r.type == RepeatType.NONE || r.type == RepeatType.SOMEDAY) mapOf("id" to s.id, "title" to s.title, "done" to s.done) else mapOf("id" to s.id, "title" to s.title)
         },
         "reminders" to t.reminders.map { mapOf("localTime" to it.localTime, "enabled" to it.enabled) },
         "sortOrder" to t.sortOrder,

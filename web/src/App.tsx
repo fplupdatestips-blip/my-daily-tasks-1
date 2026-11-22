@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { addDays, logicalToday } from './core/dates';
 import type { Task } from './core/model';
+import { Calendar } from './screens/Calendar';
 import { Detail } from './screens/Detail';
 import { Editor } from './screens/Editor';
 import { Progress, SettingsScreen, SignIn, TasksList } from './screens/OtherScreens';
@@ -8,11 +9,12 @@ import { Today } from './screens/Today';
 import { useAppState, useMedia, useNow, useStore, useTheme } from './ui/hooks';
 import { Icon } from './ui/icons';
 
-type Tab = 'today' | 'tasks' | 'progress' | 'settings';
+type Tab = 'today' | 'calendar' | 'tasks' | 'progress' | 'settings';
 type Panel = { kind: 'detail'; id: string } | { kind: 'edit'; task: Task | null; preset?: Partial<Task> } | null;
 
 const TABS: { key: Tab; label: string; icon: string }[] = [
   { key: 'today', label: 'Today', icon: 'today' },
+  { key: 'calendar', label: 'Calendar', icon: 'calendar' },
   { key: 'tasks', label: 'Tasks', icon: 'list' },
   { key: 'progress', label: 'Progress', icon: 'chart' },
 ];
@@ -63,8 +65,9 @@ export function App() {
       } else if (e.key === 'ArrowLeft' && tab === 'today') setDate((d) => addDays(d, -1));
       else if (e.key === 'ArrowRight' && tab === 'today') setDate((d) => addDays(d, 1));
       else if (e.key === '1') setTab('today');
-      else if (e.key === '2') setTab('tasks');
-      else if (e.key === '3') setTab('progress');
+      else if (e.key === '2') setTab('calendar');
+      else if (e.key === '3') setTab('tasks');
+      else if (e.key === '4') setTab('progress');
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -120,6 +123,18 @@ export function App() {
       {tab === 'today' && (
         <Today today={today} date={date} setDate={setDate} dark={dark} wide={!phone} selectedId={panel?.kind === 'detail' ? panel.id : null} onOpen={openDetail} onEdit={openEditor} onUndo={showUndo} topBar={topBar} />
       )}
+      {tab === 'calendar' && (
+        <Calendar
+          today={today}
+          dark={dark}
+          onOpen={openDetail}
+          onOpenDay={(d) => {
+            setDate(d);
+            setTab('today');
+          }}
+          topBar={topBar}
+        />
+      )}
       {tab === 'tasks' && <TasksList today={today} dark={dark} onOpen={openDetail} topBar={topBar} />}
       {tab === 'progress' && <Progress today={today} topBar={topBar} />}
       {tab === 'settings' && <SettingsScreen theme={theme} setTheme={setTheme} showBack={phone} onClose={() => setTab('today')} />}
@@ -149,7 +164,7 @@ export function App() {
       )}
 
       <div className={`flex min-w-0 flex-1 justify-center ${desktop ? 'gap-0' : ''}`}>
-        <div className="w-full max-w-[720px]">{main}</div>
+        <div className={`w-full ${tab === 'calendar' ? 'max-w-[1100px]' : 'max-w-[720px]'}`}>{main}</div>
         {desktop && (
           <aside aria-label="Details" className="sticky top-0 h-dvh w-[420px] flex-none overflow-hidden border-l border-divider">
             {panelContent ?? (
@@ -176,10 +191,10 @@ export function App() {
       )}
 
       {phone && (
-        <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-10 grid h-20 grid-cols-3 bg-surface2">
+        <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-10 grid h-20 grid-cols-4 bg-surface2">
           {TABS.map((t) => (
             <button key={t.key} type="button" aria-current={tab === t.key ? 'page' : undefined} onClick={() => setTab(t.key)} className="flex flex-col items-center justify-center gap-1 text-xs">
-              <span className={`flex h-8 w-16 items-center justify-center rounded-2xl ${tab === t.key ? 'bg-primary-container text-on-primary-container' : 'text-text2'}`}>
+              <span className={`flex h-8 w-14 items-center justify-center rounded-2xl ${tab === t.key ? 'bg-primary-container text-on-primary-container' : 'text-text2'}`}>
                 <Icon name={t.icon} size={22} />
               </span>
               <span className={tab === t.key ? 'font-semibold' : 'text-text2'}>{t.label}</span>

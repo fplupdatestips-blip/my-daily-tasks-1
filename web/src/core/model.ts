@@ -4,11 +4,11 @@ import type { LocalDate } from './dates';
 // classes in android/app/src/main/java/app/dailytasks/core/Model.kt.
 // Keep field names identical on both sides.
 
-export type RepeatType = 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'QUOTA' | 'AFTER_DONE';
+export type RepeatType = 'NONE' | 'SOMEDAY' | 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'QUOTA' | 'AFTER_DONE';
 
 export interface Repeat {
   type: RepeatType;
-  /** NONE: the day the one-off task is due. */
+  /** NONE: the day the one-off task is due. SOMEDAY has no date yet and is never due. */
   dueDate?: LocalDate;
   /** DAILY: every N days. AFTER_DONE: N days after the last completion. */
   interval?: number;
@@ -49,6 +49,8 @@ export interface Task {
   name: string;
   description: string;
   icon: string;
+  /** Optional picture the person uploaded: a small (128px) data: URL. Shown instead of the icon. */
+  image?: string | null;
   color: string;
   timeOfDay: TimeOfDay;
   /** Optional exact time "HH:mm". */

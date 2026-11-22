@@ -6,9 +6,9 @@ import { streak } from '../core/repeat';
 import { itemsForDay, marksByTask } from '../core/today';
 import { useAppState, useStore } from '../ui/hooks';
 import { Icon } from '../ui/icons';
-import { taskColors } from '../ui/palette';
+import { TaskIcon } from '../ui/TaskIcon';
 
-function ScreenHeader({ title, right }: { title: string; right?: React.ReactNode }) {
+export function ScreenHeader({ title, right }: { title: string; right?: React.ReactNode }) {
   return (
     <header className="flex items-center justify-between px-4 pb-3 pt-5">
       <h1 className="m-0 text-[28px] font-semibold tracking-tight">{title}</h1>
@@ -20,13 +20,15 @@ function ScreenHeader({ title, right }: { title: string; right?: React.ReactNode
 export function TasksList({ today, dark, onOpen, topBar }: { today: LocalDate; dark: boolean; onOpen: (t: Task) => void; topBar: React.ReactNode }) {
   const store = useStore();
   const { tasks } = useAppState();
-  const [filter, setFilter] = useState<'active' | 'paused' | 'archived'>('active');
+  const [filter, setFilter] = useState<'active' | 'someday' | 'paused' | 'archived'>('active');
   const list = tasks
     .filter((t) => {
       const paused = Boolean(t.pausedUntil && t.pausedUntil >= today);
+      const someday = t.repeat.type === 'SOMEDAY';
       if (filter === 'archived') return t.archived;
-      if (filter === 'paused') return !t.archived && paused;
-      return !t.archived && !paused;
+      if (filter === 'someday') return !t.archived && someday;
+      if (filter === 'paused') return !t.archived && paused && !someday;
+      return !t.archived && !paused && !someday;
     })
     .sort((a, b) => a.sortOrder - b.sortOrder);
 
@@ -43,25 +45,43 @@ export function TasksList({ today, dark, onOpen, topBar }: { today: LocalDate; d
     <div className="flex flex-col">
       <ScreenHeader title="Tasks" right={topBar} />
       <div className="flex gap-2 px-4 pb-3" role="group" aria-label="Filter">
-        {(['active', 'paused', 'archived'] as const).map((f) => (
+        {(['active', 'someday', 'paused', 'archived'] as const).map((f) => (
           <button key={f} type="button" aria-pressed={filter === f} onClick={() => setFilter(f)} className={`h-9 rounded-[10px] px-3.5 text-sm capitalize ${filter === f ? 'bg-primary-container font-semibold text-on-primary-container' : 'border border-outline'}`}>
             {f}
           </button>
         ))}
       </div>
       <ul className="m-0 flex list-none flex-col gap-2 px-4 pb-32">
-        {list.length === 0 && <li className="py-10 text-center text-text2">No {filter} tasks.</li>}
+        {filter === 'someday' && list.length > 0 && (
+          <li className="px-1 pb-1 text-sm text-text2">Tasks with no date yet. Pick a date to put one on your list for that day.</li>
+        )}
+        {list.length === 0 && (
+          <li className="py-10 text-center text-text2">
+            {filter === 'someday' ? 'Nothing here yet. When adding a task, choose "No date yet" to keep it here until you decide when to do it.' : `No ${filter} tasks.`}
+          </li>
+        )}
         {list.map((t, i) => {
-          const { tint, fg } = taskColors(t.color, dark);
           return (
             <li key={t.id} className="flex items-center gap-2 rounded-2xl bg-surface py-2 pl-3 pr-1">
-              <span className="flex size-10 flex-none items-center justify-center rounded-xl" style={{ background: tint, color: fg }}>
-                <Icon name={t.icon} />
-              </span>
+              <TaskIcon task={t} dark={dark} />
               <button type="button" onClick={() => onOpen(t)} className="flex min-w-0 flex-1 flex-col text-left">
                 <span className="truncate text-base font-medium">{t.name}</span>
                 <span className="truncate text-[13px] text-text2">{describeRepeat(t.repeat)}{t.subtasks.length ? ` · ${t.subtasks.length} subtasks` : ''}</span>
               </button>
+              {filter === 'someday' && (
+                <label className="relative flex h-10 flex-none cursor-pointer items-center gap-1.5 rounded-full border border-outline px-3 text-sm font-semibold text-primary hover:bg-surface2">
+                  <Icon name="calendar" size={16} />
+                  Set date
+                  <input
+                    type="date"
+                    aria-label={`Set a date for ${t.name}`}
+                    min={today}
+                    className="absolute inset-0 cursor-pointer opacity-0"
+                    onClick={(e) => (e.currentTarget as HTMLInputElement & { showPicker?: () => void }).showPicker?.()}
+                    onChange={(e) => e.target.value && void store.saveTask({ ...t, repeat: { type: 'NONE', dueDate: e.target.value } })}
+                  />
+                </label>
+              )}
               {filter === 'active' && (
                 <>
                   <button type="button" aria-label={`Move ${t.name} up`} disabled={i === 0} onClick={() => move(i, -1)} className="flex size-10 items-center justify-center rounded-full text-text2 hover:bg-surface2 disabled:opacity-30">
@@ -252,7 +272,7 @@ export function SettingsScreen({ theme, setTheme, onClose, showBack }: { theme: 
         <section className="rounded-[20px] bg-surface px-4 py-3 text-sm text-text2">
           <h2 className="mb-2 mt-0 text-[13px] font-semibold uppercase tracking-wider">Keyboard shortcuts</h2>
           <p className="m-0 leading-7">
-            <kbd>N</kbd> new task · <kbd>T</kbd> today · <kbd>←</kbd> <kbd>→</kbd> change day · <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> switch tab · <kbd>Esc</kbd> close
+            <kbd>N</kbd> new task · <kbd>T</kbd> today · <kbd>←</kbd> <kbd>→</kbd> change day · <kbd>1</kbd>–<kbd>4</kbd> switch tab · <kbd>Esc</kbd> close
           </p>
         </section>
       </div>

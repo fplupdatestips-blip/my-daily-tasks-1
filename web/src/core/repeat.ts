@@ -74,6 +74,8 @@ export function dueInfo(task: RuleTask, date: LocalDate, marks: DayMark[], weekS
   if (task.archived) return NOT_DUE;
   if (task.pausedUntil && date <= task.pausedUntil) return NOT_DUE;
   const r = task.repeat;
+  // No date yet: kept in the Someday list until it is given one.
+  if (r.type === 'SOMEDAY') return NOT_DUE;
 
   if (r.type === 'NONE') {
     const dueDate = r.dueDate ?? date;

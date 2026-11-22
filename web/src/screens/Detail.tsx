@@ -7,7 +7,7 @@ import { marksByTask } from '../core/today';
 import { toggleDay } from '../data/actions';
 import { useAppState, useStore } from '../ui/hooks';
 import { Icon } from '../ui/icons';
-import { taskColors } from '../ui/palette';
+import { TaskIcon } from '../ui/TaskIcon';
 
 const CALENDAR = new Set(['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY']);
 export const PAUSED_FOREVER = '9999-12-31';
@@ -29,7 +29,6 @@ export function Detail({ task, today, dark, onClose, onEdit, showBack }: Props) 
   const marks = useMemo(() => marksByTask(completions).get(task.id) ?? [], [completions, task.id]);
   const byDate = useMemo(() => new Map(marks.map((m) => [m.date, m.status])), [marks]);
   const s = streak(task, today, marks);
-  const { tint, fg } = taskColors(task.color, dark);
   const calendarRule = CALENDAR.has(task.repeat.type);
 
   const rate = useMemo(() => {
@@ -107,9 +106,7 @@ export function Detail({ task, today, dark, onClose, onEdit, showBack }: Props) 
           </div>
         )}
         <div className="flex items-center gap-3.5">
-          <span className="flex size-14 flex-none items-center justify-center rounded-2xl" style={{ background: tint, color: fg }}>
-            <Icon name={task.icon} size={26} />
-          </span>
+          <TaskIcon task={task} dark={dark} size={56} iconSize={26} radius="1rem" />
           <div className="flex flex-col gap-0.5">
             <h1 className="m-0 text-2xl font-semibold">{task.name}</h1>
             <span className="text-sm text-text2">
