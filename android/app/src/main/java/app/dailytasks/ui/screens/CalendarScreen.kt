@@ -9,6 +9,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -84,7 +90,7 @@ fun CalendarScreen(
         }
         item {
             Column(
-                Modifier.padding(horizontal = 16.dp).fillMaxWidth().background(c.surface, RoundedCornerShape(20.dp)).padding(12.dp),
+                Modifier.padding(horizontal = 8.dp).fillMaxWidth().background(c.surface, RoundedCornerShape(20.dp)).padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -118,11 +124,16 @@ fun CalendarScreen(
                         )
                     }
                 }
-                rows.forEach { row ->
-                    Row(Modifier.fillMaxWidth()) {
-                        row.forEach { d ->
-                            Box(Modifier.weight(1f).padding(2.dp)) {
-                                if (d != null) DayCell(d, byDay[d] ?: emptyList(), today, d == selected) { selectedKey = d.toString() }
+                Column(Modifier.fillMaxWidth().border(1.dp, c.divider, RoundedCornerShape(12.dp)).clip(RoundedCornerShape(12.dp))) {
+                    rows.forEachIndexed { ri, row ->
+                        if (ri > 0) Box(Modifier.fillMaxWidth().height(1.dp).background(c.divider))
+                        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+                            row.forEachIndexed { ci, d ->
+                                if (ci > 0) Box(Modifier.width(1.dp).fillMaxHeight().background(c.divider))
+                                Box(Modifier.weight(1f).fillMaxHeight()) {
+                                    if (d != null) DayCell(d, byDay[d] ?: emptyList(), today, d == selected) { selectedKey = d.toString() }
+                                    else Box(Modifier.fillMaxSize().background(c.surface2.copy(alpha = 0.6f)))
+                                }
                             }
                         }
                     }
@@ -158,43 +169,57 @@ fun CalendarScreen(
 private fun DayCell(d: LocalDate, items: List<TodayItem>, today: LocalDate, sel: Boolean, onClick: () -> Unit) {
     val c = LocalAppColors.current
     val allDone = items.isNotEmpty() && items.all { it.done || it.skipped } && !d.isAfter(today)
-    val bg = when {
-        sel -> c.primary
-        d == today -> c.primaryContainer
-        else -> Color.Transparent
-    }
-    val fg = when {
-        sel -> c.onPrimary
-        d == today -> c.onPrimaryContainer
-        d.isBefore(today) -> c.text2
-        else -> c.text
-    }
     val label = (if (d == today) "Today, " else "") + Describe.longLabel(d) +
-        ", ${items.size} ${if (items.size == 1) "task" else "tasks"}" + if (allDone) ", all done" else ""
+        ", ${items.size} ${if (items.size == 1) "task" else "tasks"}" + (if (allDone) ", all done" else "") +
+        if (items.isNotEmpty()) ": " + items.joinToString(", ") { it.task.name } else ""
+    val shown = if (items.size > 3) items.take(2) else items
+    val more = items.size - shown.size
     Column(
-        Modifier.fillMaxWidth().height(56.dp).background(bg, RoundedCornerShape(12.dp)).clickable(role = Role.Button, onClick = onClick)
+        Modifier.fillMaxSize().heightIn(min = 92.dp)
+            .background(if (sel) c.primaryContainer.copy(alpha = 0.6f) else Color.Transparent)
+            .then(if (sel) Modifier.border(2.dp, c.primary) else Modifier)
+            .clickable(role = Role.Button, onClick = onClick)
             .semantics(mergeDescendants = true) {
                 contentDescription = label
                 selected = sel
             }
-            .padding(top = 6.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+            .padding(3.dp),
+        verticalArrangement = Arrangement.spacedBy(3.dp),
     ) {
-        Text("${d.dayOfMonth}", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = fg)
-        if (allDone) {
-            Box(Modifier.size(16.dp).background(if (sel) c.onPrimary else c.done, CircleShape), contentAlignment = Alignment.Center) {
-                Icon(appIcon("check", 3.5f), contentDescription = null, tint = if (sel) c.primary else c.onDone, modifier = Modifier.size(10.dp))
-            }
-        } else {
-            Row(horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.CenterVertically) {
-                items.take(3).forEach { i ->
-                    val dot = if (sel) c.onPrimary else taskColors(i.task.color, c.dark).second
-                    Box(Modifier.size(6.dp).background(if (i.done || i.skipped) dot.copy(alpha = 0.35f) else dot, CircleShape))
+        Row(Modifier.fillMaxWidth().padding(bottom = 2.dp), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+            if (allDone) {
+                Box(Modifier.padding(end = 2.dp).size(14.dp).background(c.done, CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(appIcon("check", 3.5f), contentDescription = null, tint = c.onDone, modifier = Modifier.size(9.dp))
                 }
-                if (items.size > 3) Text("+${items.size - 3}", fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = fg)
+            }
+            Box(
+                Modifier.size(22.dp).background(if (d == today) c.primary else Color.Transparent, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    "${d.dayOfMonth}", fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
+                    color = when {
+                        d == today -> c.onPrimary
+                        d.isBefore(today) -> c.text2
+                        else -> c.text
+                    },
+                )
             }
         }
+        shown.forEach { i ->
+            val (tint, fg) = taskColors(i.task.color, c.dark)
+            val finished = i.done || i.skipped
+            Text(
+                i.task.name,
+                fontSize = 10.sp, lineHeight = 12.sp, fontWeight = FontWeight.Medium,
+                color = if (finished) fg.copy(alpha = 0.5f) else fg,
+                textDecoration = if (i.done) TextDecoration.LineThrough else null,
+                maxLines = 1, softWrap = false, overflow = TextOverflow.Clip,
+                modifier = Modifier.fillMaxWidth().background(if (finished) tint.copy(alpha = 0.5f) else tint, RoundedCornerShape(6.dp))
+                    .padding(horizontal = 4.dp, vertical = 2.dp),
+            )
+        }
+        if (more > 0) Text("+$more more", fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = c.text2, modifier = Modifier.padding(start = 4.dp))
     }
 }
 

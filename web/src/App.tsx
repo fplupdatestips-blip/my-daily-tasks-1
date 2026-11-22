@@ -164,7 +164,7 @@ export function App() {
       )}
 
       <div className={`flex min-w-0 flex-1 justify-center ${desktop ? 'gap-0' : ''}`}>
-        <div className="w-full max-w-[720px]">{main}</div>
+        <div className={`w-full ${tab === 'calendar' ? 'max-w-[1100px]' : 'max-w-[720px]'}`}>{main}</div>
         {desktop && (
           <aside aria-label="Details" className="sticky top-0 h-dvh w-[420px] flex-none overflow-hidden border-l border-divider">
             {panelContent ?? (

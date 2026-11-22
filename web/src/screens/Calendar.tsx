@@ -4,9 +4,9 @@ import { describeRepeat, formatTime } from '../core/describe';
 import type { Task } from '../core/model';
 import { calendarItems, monthGrid } from '../core/calendar';
 import type { TodayItem } from '../core/today';
-import { useAppState } from '../ui/hooks';
+import { useAppState, useMedia } from '../ui/hooks';
 import { Icon } from '../ui/icons';
-import { TASK_COLORS, taskColors } from '../ui/palette';
+import { taskColors } from '../ui/palette';
 import { ScreenHeader } from './OtherScreens';
 
 interface Props {
@@ -20,6 +20,7 @@ interface Props {
 export function Calendar({ today, dark, onOpen, onOpenDay, topBar }: Props) {
   const { tasks, completions, settings } = useAppState();
   const weekStart = settings.firstDayOfWeek;
+  const wide = useMedia('(min-width: 600px)');
   const [month, setMonth] = useState(() => ({ y: parts(today).y, m: parts(today).m }));
   const [selected, setSelected] = useState<LocalDate>(today);
 
@@ -51,7 +52,7 @@ export function Calendar({ today, dark, onOpen, onOpenDay, topBar }: Props) {
     <div className="flex flex-col">
       <ScreenHeader title="Calendar" right={topBar} />
       <div className="flex flex-col gap-4 px-4 pb-32">
-        <section className="flex flex-col gap-2 rounded-[20px] bg-surface p-3">
+        <section className="-mx-2 flex flex-col gap-2 rounded-[20px] bg-surface p-2 sm:mx-0 sm:p-3">
           <div className="flex items-center gap-1">
             <button type="button" aria-label="Previous month" onClick={() => shift(-1)} className="flex size-10 items-center justify-center rounded-full text-text2 hover:bg-surface2">
               <Icon name="chevronLeft" size={18} />
@@ -68,43 +69,62 @@ export function Calendar({ today, dark, onOpen, onOpenDay, topBar }: Props) {
               Back to today
             </button>
           )}
-          <div className="grid grid-cols-7 gap-1" role="grid" aria-label={`${monthLong(month.m)} ${month.y}`}>
+          <div className="grid grid-cols-7 overflow-hidden rounded-xl border border-divider" role="grid" aria-label={`${monthLong(month.m)} ${month.y}`}>
             {headers.map((w) => (
-              <div key={w} role="columnheader" className="pb-1 text-center text-xs font-medium text-text2">
+              <div key={w} role="columnheader" className="border-b border-divider py-1.5 text-center text-xs font-medium text-text2">
                 {weekdayShort(w)}
               </div>
             ))}
             {rows.flat().map((d, idx) => {
-              if (!d) return <div key={`e${idx}`} />;
+              const edge = `${idx % 7 !== 6 ? 'border-r' : ''} ${idx < rows.length * 7 - 7 ? 'border-b' : ''} border-divider`;
+              if (!d) return <div key={`e${idx}`} className={`bg-surface2/60 ${edge}`} />;
               const its = byDay.get(d) ?? [];
-              const allDone = its.length > 0 && its.every((i) => i.done || i.skipped);
+              const allDone = its.length > 0 && its.every((i) => i.done || i.skipped) && d <= today;
               const sel = d === selected;
               const isToday = d === today;
-              const shown = its.slice(0, 3);
+              const max = wide ? 4 : 3;
+              const shown = its.length > max ? its.slice(0, max - 1) : its;
+              const more = its.length - shown.length;
               return (
                 <button
                   key={d}
                   type="button"
                   onClick={() => setSelected(d)}
-                  aria-label={`${isToday ? 'Today, ' : ''}${longLabel(d)}, ${its.length} ${its.length === 1 ? 'task' : 'tasks'}${allDone && d <= today ? ', all done' : ''}`}
+                  aria-label={`${isToday ? 'Today, ' : ''}${longLabel(d)}, ${its.length} ${its.length === 1 ? 'task' : 'tasks'}${allDone ? ', all done' : ''}: ${its.map((i) => i.task.name).join(', ')}`}
                   aria-pressed={sel}
-                  className={`flex h-14 flex-col items-center justify-start gap-1 rounded-xl pt-1.5 sm:h-16 ${
-                    sel ? 'bg-primary text-on-primary' : isToday ? 'bg-primary-container text-on-primary-container' : 'hover:bg-surface2'
-                  } ${d < today && !sel ? 'text-text2' : ''}`}
+                  className={`flex min-h-[92px] min-w-0 flex-col gap-[3px] p-[3px] text-left sm:min-h-[112px] sm:gap-1 sm:p-1.5 ${edge} ${
+                    sel ? 'bg-primary-container/60 outline-2 -outline-offset-2 outline-primary' : 'hover:bg-surface2'
+                  }`}
                 >
-                  <span className="text-sm font-semibold leading-none">{parts(d).d}</span>
-                  {allDone && d <= today ? (
-                    <span className={`flex size-4 items-center justify-center rounded-full ${sel ? 'bg-on-primary text-primary' : 'bg-done text-on-done'}`}>
-                      <Icon name="check" size={10} strokeWidth={3.5} />
+                  <span className="flex items-center justify-end gap-1 pb-0.5">
+                    {allDone && (
+                      <span className="flex size-4 items-center justify-center rounded-full bg-done text-on-done" title="All done">
+                        <Icon name="check" size={10} strokeWidth={3.5} />
+                      </span>
+                    )}
+                    <span
+                      className={`flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-xs font-semibold sm:text-sm ${
+                        isToday ? 'bg-primary text-on-primary' : d < today ? 'text-text2' : ''
+                      }`}
+                    >
+                      {parts(d).d}
                     </span>
-                  ) : (
-                    <span className="flex items-center gap-[3px]">
-                      {shown.map((i) => (
-                        <span key={i.task.id} className="size-[6px] rounded-full" style={{ background: sel ? 'currentColor' : (TASK_COLORS[i.task.color] ?? TASK_COLORS.teal).swatch, opacity: i.done || i.skipped ? 0.35 : 1 }} />
-                      ))}
-                      {its.length > 3 && <span className="text-[10px] font-semibold leading-none">+{its.length - 3}</span>}
-                    </span>
-                  )}
+                  </span>
+                  {shown.map((i) => {
+                    const { tint, fg } = taskColors(i.task.color, dark);
+                    const finished = i.done || i.skipped;
+                    return (
+                      <span
+                        key={i.task.id}
+                        className={`flex min-w-0 items-center gap-1 rounded-md px-1 py-[2px] text-[10px] font-medium leading-tight sm:rounded-lg sm:px-1.5 sm:py-1 sm:text-[13px] ${finished ? 'opacity-50' : ''}`}
+                        style={{ background: tint, color: fg }}
+                      >
+                        {wide && <Icon name={i.task.icon} size={13} strokeWidth={2.2} className="flex-none" />}
+                        <span className={`overflow-hidden whitespace-nowrap sm:text-ellipsis ${i.done ? 'line-through' : ''}`}>{i.task.name}</span>
+                      </span>
+                    );
+                  })}
+                  {more > 0 && <span className="px-1 text-[10px] font-semibold text-text2 sm:text-xs">+{more} more</span>}
                 </button>
               );
             })}
