@@ -1,0 +1,33 @@
+{
+  "_comment": "Which tasks the calendar shows on a day. Used by web/src/core/calendar.test.ts and android/core CalendarItemsTest.kt. today is a Sunday.",
+  "today": "2026-11-22",
+  "weekStart": 1,
+  "tasks": [
+    { "id": "daily", "repeat": { "type": "DAILY", "interval": 1 } },
+    { "id": "mon", "repeat": { "type": "WEEKLY", "daysOfWeek": [1] } },
+    { "id": "late", "repeat": { "type": "NONE", "dueDate": "2026-11-18" } },
+    { "id": "doneLate", "repeat": { "type": "NONE", "dueDate": "2026-11-10" } },
+    { "id": "future", "repeat": { "type": "NONE", "dueDate": "2026-11-25" } },
+    { "id": "after3", "repeat": { "type": "AFTER_DONE", "interval": 3 } }
+  ],
+  "completions": [
+    { "taskId": "doneLate", "date": "2026-11-12", "status": "DONE" },
+    { "taskId": "after3", "date": "2026-11-21", "status": "DONE" }
+  ],
+  "days": [
+    { "date": "2026-11-10", "expect": ["daily", "doneLate"] },
+    { "date": "2026-11-11", "expect": ["daily"] },
+    { "date": "2026-11-12", "expect": ["daily", "doneLate"] },
+    { "date": "2026-11-16", "expect": ["daily", "mon"] },
+    { "date": "2026-11-18", "expect": ["daily", "late"] },
+    { "date": "2026-11-20", "expect": ["daily"] },
+    { "date": "2026-11-21", "expect": ["daily", "after3"] },
+    { "date": "2026-11-22", "expect": ["daily", "late"] },
+    { "date": "2026-11-23", "expect": ["daily", "mon"] },
+    { "date": "2026-11-24", "expect": ["daily", "after3"] },
+    { "date": "2026-11-25", "expect": ["daily", "future"] },
+    { "date": "2026-11-26", "expect": ["daily"] },
+    { "date": "2026-11-27", "expect": ["daily", "after3"] },
+    { "date": "2026-11-30", "expect": ["daily", "after3", "mon"] }
+  ]
+}

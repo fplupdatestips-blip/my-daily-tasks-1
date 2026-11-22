@@ -36,6 +36,7 @@ const P: Record<string, string> = {
   cloudOff: 'M3 3l18 18M17.5 19H7a5 5 0 0 1-1.6-9.7M10 6.2A6 6 0 0 1 20 11a4 4 0 0 1 .3 6.6',
   device: 'M4 5h16v11H4zM2 19h20',
   today: 'M3 5h18v16H3zM3 10h18M8 3v4M16 3v4M9 15l2 2 4-4',
+  calendar: 'M3 5h18v16H3zM3 10h18M8 3v4M16 3v4M7.5 14h.01M12 14h.01M16.5 14h.01M7.5 17.5h.01M12 17.5h.01',
   list: 'M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01',
   chart: 'M5 20V11M12 20V5M19 20v-6',
   flame: 'M12 3c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5.3 1.6 1.2 2.5 2 2.5-1-3 0-6 1-8z',

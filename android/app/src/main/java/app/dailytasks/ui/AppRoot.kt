@@ -42,6 +42,7 @@ import app.dailytasks.AppViewModel
 import app.dailytasks.AuthUi
 import app.dailytasks.core.RepeatEngine
 import app.dailytasks.core.Task
+import app.dailytasks.ui.screens.CalendarScreen
 import app.dailytasks.ui.screens.DetailScreen
 import app.dailytasks.ui.screens.EditorScreen
 import app.dailytasks.ui.screens.ProgressScreen
@@ -121,7 +122,7 @@ private fun SignInScreen(vm: AppViewModel, getIdToken: suspend () -> String) {
 
 private data class TabDef(val key: String, val label: String, val icon: String)
 
-private val TABS = listOf(TabDef("today", "Today", "today"), TabDef("tasks", "Tasks", "list"), TabDef("progress", "Progress", "chart"))
+private val TABS = listOf(TabDef("today", "Today", "today"), TabDef("calendar", "Calendar", "calendar"), TabDef("tasks", "Tasks", "list"), TabDef("progress", "Progress", "chart"))
 
 @Composable
 private fun MainShell(vm: AppViewModel) {
@@ -227,6 +228,16 @@ private fun MainShell(vm: AppViewModel) {
                     onOpen = { overlay = Overlay.Detail(it.id) },
                     onEdit = { t, preset -> overlay = Overlay.Edit(t, preset) },
                     onUndo = showUndo,
+                    onSettings = openSettings,
+                )
+                "calendar" -> CalendarScreen(
+                    data = data,
+                    today = today,
+                    onOpen = { overlay = Overlay.Detail(it.id) },
+                    onOpenDay = {
+                        date = it
+                        tab = "today"
+                    },
                     onSettings = openSettings,
                 )
                 "tasks" -> TasksScreen(vm, data, today, onOpen = { overlay = Overlay.Detail(it.id) }, onSettings = openSettings)

@@ -8,7 +8,7 @@ import { useAppState, useStore } from '../ui/hooks';
 import { Icon } from '../ui/icons';
 import { taskColors } from '../ui/palette';
 
-function ScreenHeader({ title, right }: { title: string; right?: React.ReactNode }) {
+export function ScreenHeader({ title, right }: { title: string; right?: React.ReactNode }) {
   return (
     <header className="flex items-center justify-between px-4 pb-3 pt-5">
       <h1 className="m-0 text-[28px] font-semibold tracking-tight">{title}</h1>
@@ -252,7 +252,7 @@ export function SettingsScreen({ theme, setTheme, onClose, showBack }: { theme: 
         <section className="rounded-[20px] bg-surface px-4 py-3 text-sm text-text2">
           <h2 className="mb-2 mt-0 text-[13px] font-semibold uppercase tracking-wider">Keyboard shortcuts</h2>
           <p className="m-0 leading-7">
-            <kbd>N</kbd> new task · <kbd>T</kbd> today · <kbd>←</kbd> <kbd>→</kbd> change day · <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> switch tab · <kbd>Esc</kbd> close
+            <kbd>N</kbd> new task · <kbd>T</kbd> today · <kbd>←</kbd> <kbd>→</kbd> change day · <kbd>1</kbd>–<kbd>4</kbd> switch tab · <kbd>Esc</kbd> close
           </p>
         </section>
       </div>
