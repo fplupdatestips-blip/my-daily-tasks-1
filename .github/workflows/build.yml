@@ -21,6 +21,21 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+      - name: Check for Firebase deploy key
+        id: deploykey
+        env:
+          KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -n "$KEY" ]; then echo "present=true" >> "$GITHUB_OUTPUT"; else echo "::notice::FIREBASE_SERVICE_ACCOUNT secret not set; skipping web deploy."; fi
+      - name: Publish web app to Firebase Hosting
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.deploykey.outputs.present == 'true'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          channelId: live
+          projectId: daily-tasks-19f9e
+          entryPoint: .
 
   android:
     runs-on: ubuntu-latest
@@ -41,8 +56,10 @@ jobs:
           if [ -n "$GOOGLE_SERVICES_JSON" ]; then
             printf '%s' "$GOOGLE_SERVICES_JSON" > app/google-services.json
             echo "Using google-services.json from secrets"
+          elif [ -f app/google-services.json ]; then
+            echo "Using committed google-services.json"
           else
-            echo "::warning::GOOGLE_SERVICES_JSON secret not set; the app will build without Firebase."
+            echo "::warning::No google-services.json; the app will build without Firebase."
           fi
       - name: Test shared repeat rules
         run: ./gradlew :core:test --no-daemon

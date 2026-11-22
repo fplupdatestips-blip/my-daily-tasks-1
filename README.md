@@ -50,6 +50,11 @@ npm test         # shared repeat-rule tests
 npm run build    # output in web/dist
 ```
 
+**Publishing**: every push to `main` builds the web app and publishes it to
+Firebase Hosting at https://daily-tasks-19f9e.web.app, once the repository
+secret `FIREBASE_SERVICE_ACCOUNT` holds a Firebase service account key
+(Firebase console › Project settings › Service accounts › Generate new private key).
+
 Without Firebase values in `web/.env` it runs in **test mode**: no sign-in, data saved in
 that browser only. To publish it: `npm run build`, then from the repo root
 `npx firebase-tools deploy --only hosting,firestore:rules`.
