@@ -6,7 +6,8 @@ import java.time.LocalDate
 // users/{uid}/... Keep field names identical on both sides.
 // Dates are ISO "yyyy-MM-dd" strings in storage and LocalDate in code.
 
-enum class RepeatType { NONE, DAILY, WEEKLY, MONTHLY, YEARLY, QUOTA, AFTER_DONE }
+/** SOMEDAY: no date yet, never due until it is given one. */
+enum class RepeatType { NONE, SOMEDAY, DAILY, WEEKLY, MONTHLY, YEARLY, QUOTA, AFTER_DONE }
 
 enum class Period { WEEK, MONTH }
 

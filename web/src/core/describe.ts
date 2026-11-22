@@ -11,6 +11,8 @@ function joinAnd(xs: string[]): string {
 /** Plain-English summary shown while editing and on the task card. */
 export function describeRepeat(r: Repeat, short = false): string {
   switch (r.type) {
+    case 'SOMEDAY':
+      return 'No date yet';
     case 'NONE':
       return short ? 'One-off' : r.dueDate ? `Once, on ${longLabel(r.dueDate)}` : 'Once';
     case 'DAILY':

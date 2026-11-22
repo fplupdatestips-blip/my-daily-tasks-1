@@ -20,13 +20,15 @@ export function ScreenHeader({ title, right }: { title: string; right?: React.Re
 export function TasksList({ today, dark, onOpen, topBar }: { today: LocalDate; dark: boolean; onOpen: (t: Task) => void; topBar: React.ReactNode }) {
   const store = useStore();
   const { tasks } = useAppState();
-  const [filter, setFilter] = useState<'active' | 'paused' | 'archived'>('active');
+  const [filter, setFilter] = useState<'active' | 'someday' | 'paused' | 'archived'>('active');
   const list = tasks
     .filter((t) => {
       const paused = Boolean(t.pausedUntil && t.pausedUntil >= today);
+      const someday = t.repeat.type === 'SOMEDAY';
       if (filter === 'archived') return t.archived;
-      if (filter === 'paused') return !t.archived && paused;
-      return !t.archived && !paused;
+      if (filter === 'someday') return !t.archived && someday;
+      if (filter === 'paused') return !t.archived && paused && !someday;
+      return !t.archived && !paused && !someday;
     })
     .sort((a, b) => a.sortOrder - b.sortOrder);
 
@@ -43,14 +45,21 @@ export function TasksList({ today, dark, onOpen, topBar }: { today: LocalDate; d
     <div className="flex flex-col">
       <ScreenHeader title="Tasks" right={topBar} />
       <div className="flex gap-2 px-4 pb-3" role="group" aria-label="Filter">
-        {(['active', 'paused', 'archived'] as const).map((f) => (
+        {(['active', 'someday', 'paused', 'archived'] as const).map((f) => (
           <button key={f} type="button" aria-pressed={filter === f} onClick={() => setFilter(f)} className={`h-9 rounded-[10px] px-3.5 text-sm capitalize ${filter === f ? 'bg-primary-container font-semibold text-on-primary-container' : 'border border-outline'}`}>
             {f}
           </button>
         ))}
       </div>
       <ul className="m-0 flex list-none flex-col gap-2 px-4 pb-32">
-        {list.length === 0 && <li className="py-10 text-center text-text2">No {filter} tasks.</li>}
+        {filter === 'someday' && list.length > 0 && (
+          <li className="px-1 pb-1 text-sm text-text2">Tasks with no date yet. Pick a date to put one on your list for that day.</li>
+        )}
+        {list.length === 0 && (
+          <li className="py-10 text-center text-text2">
+            {filter === 'someday' ? 'Nothing here yet. When adding a task, choose "No date yet" to keep it here until you decide when to do it.' : `No ${filter} tasks.`}
+          </li>
+        )}
         {list.map((t, i) => {
           const { tint, fg } = taskColors(t.color, dark);
           return (
@@ -62,6 +71,20 @@ export function TasksList({ today, dark, onOpen, topBar }: { today: LocalDate; d
                 <span className="truncate text-base font-medium">{t.name}</span>
                 <span className="truncate text-[13px] text-text2">{describeRepeat(t.repeat)}{t.subtasks.length ? ` · ${t.subtasks.length} subtasks` : ''}</span>
               </button>
+              {filter === 'someday' && (
+                <label className="relative flex h-10 flex-none cursor-pointer items-center gap-1.5 rounded-full border border-outline px-3 text-sm font-semibold text-primary hover:bg-surface2">
+                  <Icon name="calendar" size={16} />
+                  Set date
+                  <input
+                    type="date"
+                    aria-label={`Set a date for ${t.name}`}
+                    min={today}
+                    className="absolute inset-0 cursor-pointer opacity-0"
+                    onClick={(e) => (e.currentTarget as HTMLInputElement & { showPicker?: () => void }).showPicker?.()}
+                    onChange={(e) => e.target.value && void store.saveTask({ ...t, repeat: { type: 'NONE', dueDate: e.target.value } })}
+                  />
+                </label>
+              )}
               {filter === 'active' && (
                 <>
                   <button type="button" aria-label={`Move ${t.name} up`} disabled={i === 0} onClick={() => move(i, -1)} className="flex size-10 items-center justify-center rounded-full text-text2 hover:bg-surface2 disabled:opacity-30">

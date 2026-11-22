@@ -92,7 +92,7 @@ fun taskToDoc(t: Task): Map<String, Any?> {
         "time" to t.time,
         "repeat" to repeat,
         "subtasks" to t.subtasks.map { s ->
-            if (r.type == RepeatType.NONE) mapOf("id" to s.id, "title" to s.title, "done" to s.done) else mapOf("id" to s.id, "title" to s.title)
+            if (r.type == RepeatType.NONE || r.type == RepeatType.SOMEDAY) mapOf("id" to s.id, "title" to s.title, "done" to s.done) else mapOf("id" to s.id, "title" to s.title)
         },
         "reminders" to t.reminders.map { mapOf("localTime" to it.localTime, "enabled" to it.enabled) },
         "sortOrder" to t.sortOrder,

@@ -88,6 +88,7 @@ import java.util.UUID
 private data class Preset(val key: String, val label: String, val make: (LocalDate) -> Repeat)
 
 private val PRESETS = listOf(
+    Preset("someday", "No date yet") { Repeat(RepeatType.SOMEDAY) },
     Preset("none", "Does not repeat") { Repeat(RepeatType.NONE, dueDate = it) },
     Preset("daily", "Every day") { Repeat(RepeatType.DAILY, interval = 1, startDate = it) },
     Preset("weekdays", "Weekdays") { Repeat(RepeatType.WEEKLY, daysOfWeek = listOf(1, 2, 3, 4, 5), startDate = it) },
@@ -101,6 +102,7 @@ private val PRESETS = listOf(
 
 private fun presetKey(r: Repeat): String = when (r.type) {
     RepeatType.NONE -> "none"
+    RepeatType.SOMEDAY -> "someday"
     RepeatType.DAILY -> if ((r.interval ?: 1) <= 1) "daily" else "everyN"
     RepeatType.WEEKLY -> if (r.daysOfWeek?.sorted() == listOf(1, 2, 3, 4, 5)) "weekdays" else "weekly"
     RepeatType.QUOTA -> "quota"
@@ -122,7 +124,7 @@ fun EditorScreen(task: Task?, preset: Task?, today: LocalDate, nextSortOrder: Lo
                     id = newId(),
                     sortOrder = nextSortOrder,
                     createdAt = System.currentTimeMillis(),
-                    repeat = if (p.repeat.type == RepeatType.NONE) p.repeat else p.repeat.copy(startDate = p.repeat.startDate ?: today),
+                    repeat = if (p.repeat.type == RepeatType.NONE || p.repeat.type == RepeatType.SOMEDAY) p.repeat else p.repeat.copy(startDate = p.repeat.startDate ?: today),
                 )
             },
         )
@@ -221,7 +223,7 @@ fun EditorScreen(task: Task?, preset: Task?, today: LocalDate, nextSortOrder: Lo
                         Chip(p.label, presetKey(t.repeat) == p.key) {
                             if (presetKey(t.repeat) != p.key) {
                                 val r = p.make(today)
-                                t = t.copy(repeat = if (r.type == RepeatType.NONE) r else r.copy(startDate = t.repeat.startDate ?: today))
+                                t = t.copy(repeat = if (r.type == RepeatType.NONE || r.type == RepeatType.SOMEDAY) r else r.copy(startDate = t.repeat.startDate ?: today))
                             }
                         }
                     }
@@ -229,6 +231,7 @@ fun EditorScreen(task: Task?, preset: Task?, today: LocalDate, nextSortOrder: Lo
                 RuleFields(t.repeat, ::setR, pickDate = { d, f -> pickDate(d, f) })
                 val note = when (t.repeat.type) {
                     RepeatType.NONE -> " If it is not done, it moves to the next day until it is."
+                    RepeatType.SOMEDAY -> " It waits in the Someday list (Tasks tab) until you give it a date."
                     RepeatType.AFTER_DONE -> " The next one is due that many days after you last tick it."
                     else -> ""
                 }
@@ -271,7 +274,7 @@ fun EditorScreen(task: Task?, preset: Task?, today: LocalDate, nextSortOrder: Lo
                 }
                 if (t.subtasks.isNotEmpty()) {
                     Text(
-                        "Ticking the last subtask completes the task." + if (t.repeat.type != RepeatType.NONE) " Subtasks reset each day." else "",
+                        "Ticking the last subtask completes the task." + if (t.repeat.type != RepeatType.NONE && t.repeat.type != RepeatType.SOMEDAY) " Subtasks reset each day." else "",
                         fontSize = 12.sp, color = c.text2,
                     )
                 }
@@ -334,7 +337,7 @@ fun EditorScreen(task: Task?, preset: Task?, today: LocalDate, nextSortOrder: Lo
                     }
                     Icon(appIcon(if (more) "chevronUp" else "chevronDown"), contentDescription = null, tint = c.text2)
                 }
-                if (more && t.repeat.type != RepeatType.NONE) {
+                if (more && t.repeat.type != RepeatType.NONE && t.repeat.type != RepeatType.SOMEDAY) {
                     DateRow("Starts", t.repeat.startDate) { pickDate(t.repeat.startDate) { d -> setR { it.copy(startDate = d) } } }
                     DateRow("Ends", t.repeat.endDate, onClear = { setR { it.copy(endDate = null) } }) { pickDate(t.repeat.endDate) { d -> setR { it.copy(endDate = d) } } }
                 }

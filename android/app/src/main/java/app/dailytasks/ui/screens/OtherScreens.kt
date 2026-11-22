@@ -2,6 +2,7 @@ package app.dailytasks.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,7 +22,11 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Switch
@@ -48,25 +53,50 @@ import app.dailytasks.AppViewModel
 import app.dailytasks.AuthUi
 import app.dailytasks.DataState
 import app.dailytasks.core.Describe
+import app.dailytasks.core.Repeat
 import app.dailytasks.core.RepeatEngine
+import app.dailytasks.core.RepeatType
 import app.dailytasks.core.Task
 import app.dailytasks.core.TodayItems
 import app.dailytasks.ui.appIcon
 import app.dailytasks.ui.theme.LocalAppColors
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneOffset
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TasksScreen(vm: AppViewModel, data: DataState, today: LocalDate, onOpen: (Task) -> Unit, onSettings: () -> Unit) {
     val c = LocalAppColors.current
     var filter by rememberSaveable { mutableStateOf("Active") }
     val list = data.tasks.filter {
         val paused = it.pausedUntil?.let { p -> !p.isBefore(today) } == true
+        val someday = it.repeat.type == RepeatType.SOMEDAY
         when (filter) {
             "Archived" -> it.archived
-            "Paused" -> !it.archived && paused
-            else -> !it.archived && !paused
+            "Someday" -> !it.archived && someday
+            "Paused" -> !it.archived && paused && !someday
+            else -> !it.archived && !paused && !someday
         }
     }.sortedBy { it.sortOrder }
+    var dateFor by remember { mutableStateOf<Task?>(null) }
+
+    dateFor?.let { task ->
+        val state = rememberDatePickerState(initialSelectedDateMillis = today.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli())
+        DatePickerDialog(
+            onDismissRequest = { dateFor = null },
+            confirmButton = {
+                TextButton(onClick = {
+                    state.selectedDateMillis?.let {
+                        val d = Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate()
+                        vm.saveTask(task.copy(repeat = Repeat(RepeatType.NONE, dueDate = d)))
+                    }
+                    dateFor = null
+                }) { Text("OK") }
+            },
+            dismissButton = { TextButton(onClick = { dateFor = null }) { Text("Cancel") } },
+        ) { DatePicker(state = state) }
+    }
 
     LazyColumn(contentPadding = PaddingValues(bottom = 112.dp)) {
         item {
@@ -76,8 +106,8 @@ fun TasksScreen(vm: AppViewModel, data: DataState, today: LocalDate, onOpen: (Ta
             }
         }
         item {
-            Row(Modifier.padding(horizontal = 16.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf("Active", "Paused", "Archived").forEach { f ->
+            Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf("Active", "Someday", "Paused", "Archived").forEach { f ->
                     val sel = filter == f
                     Box(
                         Modifier.heightIn(min = 40.dp)
@@ -88,7 +118,15 @@ fun TasksScreen(vm: AppViewModel, data: DataState, today: LocalDate, onOpen: (Ta
                 }
             }
         }
-        if (list.isEmpty()) item { Text("No ${filter.lowercase()} tasks.", color = c.text2, modifier = Modifier.fillMaxWidth().padding(40.dp)) }
+        if (filter == "Someday" && list.isNotEmpty()) item {
+            Text("Tasks with no date yet. Pick a date to put one on your list for that day.", fontSize = 14.sp, color = c.text2, modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp))
+        }
+        if (list.isEmpty()) item {
+            Text(
+                if (filter == "Someday") "Nothing here yet. When adding a task, choose \"No date yet\" to keep it here until you decide when to do it." else "No ${filter.lowercase()} tasks.",
+                color = c.text2, modifier = Modifier.fillMaxWidth().padding(40.dp),
+            )
+        }
         itemsIndexed(list, key = { _, t -> t.id }) { i, t ->
             Row(
                 Modifier.padding(horizontal = 16.dp, vertical = 4.dp).fillMaxWidth().background(c.surface, RoundedCornerShape(16.dp))
@@ -103,6 +141,9 @@ fun TasksScreen(vm: AppViewModel, data: DataState, today: LocalDate, onOpen: (Ta
                         Describe.repeat(t.repeat) + if (t.subtasks.isNotEmpty()) " · ${t.subtasks.size} subtasks" else "",
                         fontSize = 13.sp, color = c.text2, maxLines = 1, overflow = TextOverflow.Ellipsis,
                     )
+                }
+                if (filter == "Someday") {
+                    TextButton(onClick = { dateFor = t }) { Text("Set date", color = c.primary, fontWeight = FontWeight.SemiBold) }
                 }
                 if (filter == "Active") {
                     IconButton(onClick = { if (i > 0) swap(vm, t, list[i - 1]) }, enabled = i > 0) {

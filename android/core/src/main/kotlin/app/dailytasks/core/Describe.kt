@@ -28,6 +28,7 @@ object Describe {
     }
 
     fun repeat(r: Repeat, short: Boolean = false): String = when (r.type) {
+        RepeatType.SOMEDAY -> "No date yet"
         RepeatType.NONE -> if (short) "One-off" else r.dueDate?.let { "Once, on ${longLabel(it)}" } ?: "Once"
         RepeatType.DAILY -> if ((r.interval ?: 1) <= 1) "Every day" else "Every ${r.interval} days"
         RepeatType.WEEKLY -> {

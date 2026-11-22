@@ -18,6 +18,7 @@ interface Props {
 type Preset = { key: string; label: string; make: (today: LocalDate) => Repeat };
 
 const PRESETS: Preset[] = [
+  { key: 'someday', label: 'No date yet', make: () => ({ type: 'SOMEDAY' }) },
   { key: 'none', label: 'Does not repeat', make: (t) => ({ type: 'NONE', dueDate: t }) },
   { key: 'daily', label: 'Every day', make: (t) => ({ type: 'DAILY', interval: 1, startDate: t }) },
   { key: 'weekdays', label: 'Weekdays', make: (t) => ({ type: 'WEEKLY', daysOfWeek: [1, 2, 3, 4, 5], startDate: t }) },
@@ -31,6 +32,8 @@ const PRESETS: Preset[] = [
 
 function presetKey(r: Repeat): string {
   switch (r.type) {
+    case 'SOMEDAY':
+      return 'someday';
     case 'NONE':
       return 'none';
     case 'DAILY':
@@ -168,7 +171,7 @@ export function Editor({ task, preset, today, dark, nextSortOrder, onSave, onCan
             {PRESETS.map((p) => {
               const on = presetKey(r) === p.key;
               return (
-                <button key={p.key} type="button" aria-pressed={on} className={chip(on)} onClick={() => !on && set({ repeat: { ...p.make(today), startDate: p.key === 'none' ? undefined : (r.startDate ?? today) } })}>
+                <button key={p.key} type="button" aria-pressed={on} className={chip(on)} onClick={() => !on && set({ repeat: { ...p.make(today), startDate: p.key === 'none' || p.key === 'someday' ? undefined : (r.startDate ?? today) } })}>
                   {p.label}
                 </button>
               );
@@ -178,6 +181,7 @@ export function Editor({ task, preset, today, dark, nextSortOrder, onSave, onCan
           <p className="m-0 text-sm text-text2" aria-live="polite">
             {describeRepeat(r)}.{' '}
             {r.type === 'NONE' && 'If it is not done, it moves to the next day until it is.'}
+            {r.type === 'SOMEDAY' && 'It waits in the Someday list (Tasks tab) until you give it a date.'}
             {r.type === 'AFTER_DONE' && 'The next one is due that many days after you last tick it.'}
           </p>
         </section>
@@ -223,7 +227,7 @@ export function Editor({ task, preset, today, dark, nextSortOrder, onSave, onCan
               />
             </li>
           </ul>
-          {t.subtasks.length > 0 && <span className="text-xs text-text2">Ticking the last subtask completes the task.{r.type !== 'NONE' && ' Subtasks reset each day.'}</span>}
+          {t.subtasks.length > 0 && <span className="text-xs text-text2">Ticking the last subtask completes the task.{r.type !== 'NONE' && r.type !== 'SOMEDAY' && ' Subtasks reset each day.'}</span>}
         </section>
 
         <section className="flex flex-col gap-2.5">
@@ -276,7 +280,7 @@ export function Editor({ task, preset, today, dark, nextSortOrder, onSave, onCan
             </span>
             <Icon name="chevronDown" className={`text-text2 transition-transform ${more ? 'rotate-180' : ''}`} />
           </button>
-          {more && r.type !== 'NONE' && (
+          {more && r.type !== 'NONE' && r.type !== 'SOMEDAY' && (
             <div className="flex flex-wrap gap-4">
               <label className="flex flex-col gap-1 text-[13px] font-semibold text-text2">
                 Starts

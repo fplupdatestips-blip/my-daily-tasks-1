@@ -2,6 +2,7 @@
   "about": "Shared test cases for the repeat-rule engine. Both web/src/core/repeat.test.ts and android/app/src/test/.../RepeatEngineTest.kt run every case here, so the phone and the web always agree on what is due. Dates are local calendar dates. 2026-11-20 is a Friday. weekStart 1 = Monday.",
   "weekStart": 1,
   "dueCases": [
+    { "name": "a task with no date yet is never due", "repeat": { "type": "SOMEDAY" }, "date": "2026-11-20", "expect": { "due": false } },
     { "name": "daily is due every day", "repeat": { "type": "DAILY", "interval": 1, "startDate": "2026-11-01" }, "date": "2026-11-20", "expect": { "due": true } },
     { "name": "daily is not due before its start date", "repeat": { "type": "DAILY", "interval": 1, "startDate": "2026-11-21" }, "date": "2026-11-20", "expect": { "due": false } },
     { "name": "every 3 days lands on anchor plus 6", "repeat": { "type": "DAILY", "interval": 3, "startDate": "2026-11-14" }, "date": "2026-11-20", "expect": { "due": true } },
