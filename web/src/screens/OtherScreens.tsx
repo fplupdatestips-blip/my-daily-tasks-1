@@ -6,7 +6,7 @@ import { streak } from '../core/repeat';
 import { itemsForDay, marksByTask } from '../core/today';
 import { useAppState, useStore } from '../ui/hooks';
 import { Icon } from '../ui/icons';
-import { taskColors } from '../ui/palette';
+import { TaskIcon } from '../ui/TaskIcon';
 
 export function ScreenHeader({ title, right }: { title: string; right?: React.ReactNode }) {
   return (
@@ -61,12 +61,9 @@ export function TasksList({ today, dark, onOpen, topBar }: { today: LocalDate; d
           </li>
         )}
         {list.map((t, i) => {
-          const { tint, fg } = taskColors(t.color, dark);
           return (
             <li key={t.id} className="flex items-center gap-2 rounded-2xl bg-surface py-2 pl-3 pr-1">
-              <span className="flex size-10 flex-none items-center justify-center rounded-xl" style={{ background: tint, color: fg }}>
-                <Icon name={t.icon} />
-              </span>
+              <TaskIcon task={t} dark={dark} />
               <button type="button" onClick={() => onOpen(t)} className="flex min-w-0 flex-1 flex-col text-left">
                 <span className="truncate text-base font-medium">{t.name}</span>
                 <span className="truncate text-[13px] text-text2">{describeRepeat(t.repeat)}{t.subtasks.length ? ` · ${t.subtasks.length} subtasks` : ''}</span>

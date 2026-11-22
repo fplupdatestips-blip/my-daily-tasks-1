@@ -49,6 +49,8 @@ export interface Task {
   name: string;
   description: string;
   icon: string;
+  /** Optional picture the person uploaded: a small (128px) data: URL. Shown instead of the icon. */
+  image?: string | null;
   color: string;
   timeOfDay: TimeOfDay;
   /** Optional exact time "HH:mm". */

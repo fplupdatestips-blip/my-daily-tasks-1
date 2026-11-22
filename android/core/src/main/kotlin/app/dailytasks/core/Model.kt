@@ -50,6 +50,8 @@ data class Task(
     val name: String,
     val description: String = "",
     val icon: String = "check",
+    /** Optional picture the person uploaded: a small (128px) data: URL. Shown instead of the icon. */
+    val image: String? = null,
     val color: String = "teal",
     val timeOfDay: TimeOfDay = TimeOfDay.ANYTIME,
     /** Optional exact time "HH:mm". */

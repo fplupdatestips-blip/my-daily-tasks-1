@@ -241,7 +241,7 @@ private fun DayRow(item: TodayItem, date: LocalDate, today: LocalDate, onOpen: (
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        TaskIconBox(task.icon, task.color)
+        TaskIconBox(task.icon, task.color, image = task.image)
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
                 task.name, fontSize = 15.sp, fontWeight = FontWeight.Medium, color = if (item.done) c.text2 else c.text,

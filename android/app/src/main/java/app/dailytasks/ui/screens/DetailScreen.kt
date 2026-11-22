@@ -94,7 +94,7 @@ fun DetailScreen(vm: AppViewModel, task: Task, today: LocalDate, onBack: () -> U
 
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                TaskIconBox(task.icon, task.color, 56.dp, 26.dp)
+                TaskIconBox(task.icon, task.color, 56.dp, 26.dp, task.image)
                 Column {
                     Text(task.name, fontSize = 24.sp, fontWeight = FontWeight.SemiBold, color = c.text)
                     val bits = listOfNotNull(

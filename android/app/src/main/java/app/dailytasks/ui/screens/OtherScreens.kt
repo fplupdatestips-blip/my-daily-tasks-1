@@ -134,7 +134,7 @@ fun TasksScreen(vm: AppViewModel, data: DataState, today: LocalDate, onOpen: (Ta
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                TaskIconBox(t.icon, t.color)
+                TaskIconBox(t.icon, t.color, image = t.image)
                 Column(Modifier.weight(1f).clickable { onOpen(t) }) {
                     Text(t.name, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = c.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(

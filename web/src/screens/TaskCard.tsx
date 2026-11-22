@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { describeRepeat, formatTime } from '../core/describe';
 import type { TodayItem } from '../core/today';
 import { Icon } from '../ui/icons';
-import { taskColors } from '../ui/palette';
+import { TaskIcon } from '../ui/TaskIcon';
 
 interface Props {
   item: TodayItem;
@@ -17,7 +17,6 @@ interface Props {
 
 export function TaskCard({ item, dark, selected, onToggle, onSubtask, onOpen, onSkip, onEdit }: Props) {
   const { task, done, skipped } = item;
-  const { tint, fg } = taskColors(task.color, dark);
   const subs = task.subtasks;
   const subsDone = subs.filter((s) => item.subtasksDone.includes(s.id)).length;
   const [open, setOpen] = useState(subsDone > 0 && !done);
@@ -34,9 +33,7 @@ export function TaskCard({ item, dark, selected, onToggle, onSubtask, onOpen, on
       }}
     >
       <div className="flex items-center gap-3 py-3 pl-3 pr-2">
-        <span className="flex size-10 flex-none items-center justify-center rounded-xl" style={{ background: tint, color: fg }}>
-          <Icon name={task.icon} />
-        </span>
+        <TaskIcon task={task} dark={dark} />
         <button type="button" onClick={onOpen} className="flex min-w-0 flex-1 flex-col gap-0.5 text-left">
           {item.late && !done && (
             <span className="self-start rounded-md bg-amber-tint px-1.5 py-0.5 text-[11px] font-semibold tracking-wide text-streak">{item.late}</span>

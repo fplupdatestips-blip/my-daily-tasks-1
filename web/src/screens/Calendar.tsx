@@ -8,6 +8,7 @@ import { useAppState, useMedia } from '../ui/hooks';
 import { Icon } from '../ui/icons';
 import { taskColors } from '../ui/palette';
 import { ScreenHeader } from './OtherScreens';
+import { TaskIcon } from '../ui/TaskIcon';
 
 interface Props {
   today: LocalDate;
@@ -119,7 +120,7 @@ export function Calendar({ today, dark, onOpen, onOpenDay, topBar }: Props) {
                         className={`flex min-w-0 items-center gap-1 rounded-md px-1 py-[2px] text-[10px] font-medium leading-tight sm:rounded-lg sm:px-1.5 sm:py-1 sm:text-[13px] ${finished ? 'opacity-50' : ''}`}
                         style={{ background: tint, color: fg }}
                       >
-                        {wide && <Icon name={i.task.icon} size={13} strokeWidth={2.2} className="flex-none" />}
+                        {wide && (i.task.image ? <img src={i.task.image} alt="" className="size-4 flex-none rounded object-cover" /> : <Icon name={i.task.icon} size={13} strokeWidth={2.2} className="flex-none" />)}
                         <span className={`overflow-hidden whitespace-nowrap sm:text-ellipsis ${i.done ? 'line-through' : ''}`}>{i.task.name}</span>
                       </span>
                     );
@@ -156,14 +157,11 @@ export function Calendar({ today, dark, onOpen, onOpenDay, topBar }: Props) {
 
 function DayRow({ item, date, today, dark, onOpen }: { item: TodayItem; date: LocalDate; today: LocalDate; dark: boolean; onOpen: () => void }) {
   const { task, done, skipped } = item;
-  const { tint, fg } = taskColors(task.color, dark);
   const status = done ? 'Done' : skipped ? 'Skipped' : item.late ? item.late : date < today ? 'Not done' : null;
   const meta = [describeRepeat(task.repeat, true), task.time ? formatTime(task.time) : null].filter(Boolean).join(' · ');
   return (
     <button type="button" onClick={onOpen} className="flex items-center gap-3 rounded-2xl bg-surface py-3 pl-3 pr-4 text-left hover:bg-surface2">
-      <span className="flex size-10 flex-none items-center justify-center rounded-xl" style={{ background: tint, color: fg }}>
-        <Icon name={task.icon} />
-      </span>
+      <TaskIcon task={task} dark={dark} />
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className={`truncate text-[15px] font-medium ${done ? 'text-text2 line-through' : ''}`}>{task.name}</span>
         {task.description && <span className="truncate text-sm text-text2">{task.description}</span>}

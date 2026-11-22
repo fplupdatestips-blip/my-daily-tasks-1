@@ -1,10 +1,12 @@
 package app.dailytasks.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -13,8 +15,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -23,16 +28,22 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.dailytasks.data.SyncState
+import app.dailytasks.ui.TaskImages
 import app.dailytasks.ui.appIcon
 import app.dailytasks.ui.theme.LocalAppColors
 import app.dailytasks.ui.theme.taskColors
 
 @Composable
-fun TaskIconBox(icon: String, color: String, size: Dp = 40.dp, iconSize: Dp = 20.dp) {
+fun TaskIconBox(icon: String, color: String, size: Dp = 40.dp, iconSize: Dp = 20.dp, image: String? = null) {
     val c = LocalAppColors.current
     val (tint, fg) = taskColors(color, c.dark)
-    Box(Modifier.size(size).background(tint, RoundedCornerShape(size * 0.3f)), contentAlignment = Alignment.Center) {
-        Icon(appIcon(icon), contentDescription = null, tint = fg, modifier = Modifier.size(iconSize))
+    val picture = remember(image) { image?.let { TaskImages.decode(it) } }
+    Box(Modifier.size(size).clip(RoundedCornerShape(size * 0.3f)).background(tint), contentAlignment = Alignment.Center) {
+        if (picture != null) {
+            Image(picture, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+        } else {
+            Icon(appIcon(icon), contentDescription = null, tint = fg, modifier = Modifier.size(iconSize))
+        }
     }
 }
 

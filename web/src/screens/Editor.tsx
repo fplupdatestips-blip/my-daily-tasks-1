@@ -3,7 +3,8 @@ import { isoWeekday, monthLong, parts, weekdayLong, weekdayShort, type LocalDate
 import { describeRepeat } from '../core/describe';
 import { newId, type Repeat, type RepeatType, type Subtask, type Task, type TimeOfDay } from '../core/model';
 import { Icon, TASK_ICONS } from '../ui/icons';
-import { TASK_COLORS, taskColors } from '../ui/palette';
+import { imageFileToIcon, TaskIcon } from '../ui/TaskIcon';
+import { TASK_COLORS } from '../ui/palette';
 
 interface Props {
   task: Task | null;
@@ -88,7 +89,6 @@ export function Editor({ task, preset, today, dark, nextSortOrder, onSave, onCan
   const set = (p: Partial<Task>) => setT((x) => ({ ...x, ...p }));
   const setR = (p: Partial<Repeat>) => setT((x) => ({ ...x, repeat: { ...x.repeat, ...p } }));
   const r = t.repeat;
-  const { tint, fg } = taskColors(t.color, dark);
 
   const addSub = () => {
     if (!newSub.trim()) return;
@@ -145,13 +145,39 @@ export function Editor({ task, preset, today, dark, nextSortOrder, onSave, onCan
 
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative">
-            <button type="button" aria-label={`Choose icon, currently ${t.icon}`} aria-expanded={iconsOpen} onClick={() => setIconsOpen(!iconsOpen)} className="flex size-14 items-center justify-center rounded-2xl" style={{ background: tint, color: fg }}>
-              <Icon name={t.icon} size={26} />
+            <button type="button" aria-label={t.image ? 'Change picture or icon' : `Choose icon or picture, currently ${t.icon}`} aria-expanded={iconsOpen} onClick={() => setIconsOpen(!iconsOpen)} className="flex rounded-2xl">
+              <TaskIcon task={t} dark={dark} size={56} iconSize={26} radius="1rem" />
             </button>
             {iconsOpen && (
               <div className="absolute left-0 top-16 z-20 grid w-64 grid-cols-6 gap-1 rounded-2xl bg-surface p-2 shadow-lg ring-1 ring-divider">
+                <label className="col-span-6 flex h-10 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-primary-container text-sm font-semibold text-on-primary-container hover:opacity-90">
+                  <Icon name="upload" size={16} />
+                  {t.image ? 'Change picture' : 'Upload a picture'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={async (e) => {
+                      const f = e.target.files?.[0];
+                      e.target.value = '';
+                      if (!f) return;
+                      try {
+                        set({ image: await imageFileToIcon(f) });
+                        setIconsOpen(false);
+                      } catch {
+                        alert("That file couldn't be read as a picture. Try a PNG or JPG.");
+                      }
+                    }}
+                  />
+                </label>
+                {t.image && (
+                  <button type="button" onClick={() => { set({ image: null }); setIconsOpen(false); }} className="col-span-6 h-9 rounded-xl text-sm font-semibold text-missed hover:bg-surface2">
+                    Remove picture
+                  </button>
+                )}
+                <span className="col-span-6 px-1 pt-1 text-xs text-text2">Or pick an icon</span>
                 {TASK_ICONS.map((i) => (
-                  <button key={i} type="button" aria-label={i} aria-pressed={t.icon === i} onClick={() => { set({ icon: i }); setIconsOpen(false); }} className={`flex size-10 items-center justify-center rounded-xl ${t.icon === i ? 'bg-primary-container text-on-primary-container' : 'hover:bg-surface2'}`}>
+                  <button key={i} type="button" aria-label={i} aria-pressed={t.icon === i} onClick={() => { set({ icon: i, image: null }); setIconsOpen(false); }} className={`flex size-10 items-center justify-center rounded-xl ${t.icon === i ? 'bg-primary-container text-on-primary-container' : 'hover:bg-surface2'}`}>
                     <Icon name={i} />
                   </button>
                 ))}
