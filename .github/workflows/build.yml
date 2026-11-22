@@ -28,7 +28,7 @@ jobs:
         run: |
           if [ -n "$KEY" ]; then echo "present=true" >> "$GITHUB_OUTPUT"; else echo "::notice::FIREBASE_SERVICE_ACCOUNT secret not set; skipping web deploy."; fi
       - name: Publish web app to Firebase Hosting
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.deploykey.outputs.present == 'true'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && steps.deploykey.outputs.present == 'true'
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
