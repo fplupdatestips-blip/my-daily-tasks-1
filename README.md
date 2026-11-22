@@ -35,7 +35,7 @@ home-screen widget, onboarding, then polish.
 2. **Authentication › Sign-in method**: turn on **Google**.
 3. **Firestore Database**: create a database, then paste `firestore.rules` into the Rules tab and publish.
 4. **Project settings › Your apps**:
-   - Add a **Web app**. Copy its config values into `web/.env.local` (see `web/.env.example`).
+   - Add a **Web app**. Its config is already in `web/.env` (project daily-tasks-19f9e).
    - Add an **Android app** with package name `app.dailytasks` and this SHA-1 (from the debug key in `android/app/debug.keystore`):
      `AA:75:83:F3:4A:B5:6F:68:DD:4B:A4:97:83:6D:B6:2B:61:46:E3:5E`.
      Download `google-services.json` into `android/app/`. For GitHub builds, also save its contents as a repository secret named `GOOGLE_SERVICES_JSON`.
@@ -50,7 +50,7 @@ npm test         # shared repeat-rule tests
 npm run build    # output in web/dist
 ```
 
-Without `web/.env.local` it runs in **test mode**: no sign-in, data saved in
+Without Firebase values in `web/.env` it runs in **test mode**: no sign-in, data saved in
 that browser only. To publish it: `npm run build`, then from the repo root
 `npx firebase-tools deploy --only hosting,firestore:rules`.
 
