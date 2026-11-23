@@ -1,24 +1,83 @@
 {
-  "_comment": "Football feed -> auto tasks. Used by web/src/core/football.test.ts and android/core FootballTest.kt. Same shape as football.json from scripts/football-feed.mjs.",
+  "_comment": "Football feed -> auto tasks (one Match Coverage per day, listing that day's matches). Used by web/src/core/football.test.ts and android/core FootballTest.kt.",
   "feed": {
     "version": 1,
     "updatedAt": "2026-11-23T12:00:00.000Z",
     "deadlines": [
-      { "gw": 12, "name": "Gameweek 12", "deadline": "2026-11-27T18:30:00.000Z" },
-      { "gw": 21, "name": "Gameweek 21", "deadline": "2027-01-01T23:30:00.000Z" }
+      {
+        "gw": 12,
+        "name": "Gameweek 12",
+        "deadline": "2026-11-27T18:30:00.000Z"
+      },
+      {
+        "gw": 21,
+        "name": "Gameweek 21",
+        "deadline": "2027-01-01T23:30:00.000Z"
+      }
     ],
     "matches": [
       {
-        "id": "401915295", "kickoff": "2026-11-24T20:00:00.000Z", "timeValid": true,
-        "home": { "id": "359", "name": "Arsenal", "short": "Arsenal", "abbr": "ARS" },
-        "away": { "id": "124", "name": "Borussia Dortmund", "short": "Dortmund", "abbr": "DOR" },
-        "competition": "UEFA Champions League", "venue": "Emirates Stadium", "state": "pre", "statusName": "STATUS_SCHEDULED"
+        "id": "401915300",
+        "kickoff": "2026-11-24T17:45:00.000Z",
+        "timeValid": true,
+        "home": {
+          "id": "0",
+          "name": "Galatasaray",
+          "short": "Galatasaray",
+          "abbr": "GAL"
+        },
+        "away": {
+          "id": "362",
+          "name": "Aston Villa",
+          "short": "Aston Villa",
+          "abbr": "AVL"
+        },
+        "competition": "UEFA Champions League",
+        "venue": "RAMS Park",
+        "state": "pre",
+        "statusName": "STATUS_SCHEDULED"
       },
       {
-        "id": "401878753", "kickoff": "2026-11-29T00:00:00.000Z", "timeValid": false,
-        "home": { "id": "359", "name": "Arsenal", "short": "Arsenal", "abbr": "ARS" },
-        "away": { "id": "382", "name": "Manchester City", "short": "Man City", "abbr": "MNC" },
-        "competition": "English Premier League", "venue": "", "state": "pre", "statusName": "STATUS_SCHEDULED"
+        "id": "401915295",
+        "kickoff": "2026-11-24T20:00:00.000Z",
+        "timeValid": true,
+        "home": {
+          "id": "359",
+          "name": "Arsenal",
+          "short": "Arsenal",
+          "abbr": "ARS"
+        },
+        "away": {
+          "id": "124",
+          "name": "Borussia Dortmund",
+          "short": "Dortmund",
+          "abbr": "DOR"
+        },
+        "competition": "UEFA Champions League",
+        "venue": "Emirates Stadium",
+        "state": "pre",
+        "statusName": "STATUS_SCHEDULED"
+      },
+      {
+        "id": "401878753",
+        "kickoff": "2026-11-29T00:00:00.000Z",
+        "timeValid": false,
+        "home": {
+          "id": "359",
+          "name": "Arsenal",
+          "short": "Arsenal",
+          "abbr": "ARS"
+        },
+        "away": {
+          "id": "382",
+          "name": "Manchester City",
+          "short": "Man City",
+          "abbr": "MNC"
+        },
+        "competition": "English Premier League",
+        "venue": "",
+        "state": "pre",
+        "statusName": "STATUS_SCHEDULED"
       }
     ]
   },
@@ -26,20 +85,81 @@
     {
       "zone": "Europe/London",
       "expect": [
-        { "id": "fpl-gw-12", "name": "FPL GW12 deadline", "date": "2026-11-27", "time": "18:30", "timeOfDay": "EVENING", "icon": "deadline" },
-        { "id": "fpl-gw-21", "name": "FPL GW21 deadline", "date": "2027-01-01", "time": "23:30", "timeOfDay": "EVENING", "icon": "deadline" },
-        { "id": "match-401915295", "name": "Match Coverage: Arsenal v Dortmund", "date": "2026-11-24", "time": "20:00", "timeOfDay": "EVENING", "icon": "football" },
-        { "id": "match-401878753", "name": "Match Coverage: Arsenal v Man City", "date": "2026-11-29", "time": null, "timeOfDay": "ANYTIME", "icon": "football" }
+        {
+          "id": "fpl-gw-12",
+          "name": "FPL GW12 deadline",
+          "date": "2026-11-27",
+          "time": "18:30",
+          "timeOfDay": "EVENING",
+          "icon": "deadline"
+        },
+        {
+          "id": "fpl-gw-21",
+          "name": "FPL GW21 deadline",
+          "date": "2027-01-01",
+          "time": "23:30",
+          "timeOfDay": "EVENING",
+          "icon": "deadline"
+        },
+        {
+          "id": "match-day-2026-11-24",
+          "name": "Match Coverage",
+          "date": "2026-11-24",
+          "time": "17:45",
+          "timeOfDay": "EVENING",
+          "icon": "football"
+        },
+        {
+          "id": "match-day-2026-11-29",
+          "name": "Match Coverage",
+          "date": "2026-11-29",
+          "time": null,
+          "timeOfDay": "ANYTIME",
+          "icon": "football"
+        }
       ]
     },
     {
       "zone": "Europe/Athens",
       "expect": [
-        { "id": "fpl-gw-12", "name": "FPL GW12 deadline", "date": "2026-11-27", "time": "20:30", "timeOfDay": "EVENING", "icon": "deadline" },
-        { "id": "fpl-gw-21", "name": "FPL GW21 deadline", "date": "2027-01-02", "time": "01:30", "timeOfDay": "MORNING", "icon": "deadline" },
-        { "id": "match-401915295", "name": "Match Coverage: Arsenal v Dortmund", "date": "2026-11-24", "time": "22:00", "timeOfDay": "EVENING", "icon": "football" },
-        { "id": "match-401878753", "name": "Match Coverage: Arsenal v Man City", "date": "2026-11-29", "time": null, "timeOfDay": "ANYTIME", "icon": "football" }
+        {
+          "id": "fpl-gw-12",
+          "name": "FPL GW12 deadline",
+          "date": "2026-11-27",
+          "time": "20:30",
+          "timeOfDay": "EVENING",
+          "icon": "deadline"
+        },
+        {
+          "id": "fpl-gw-21",
+          "name": "FPL GW21 deadline",
+          "date": "2027-01-02",
+          "time": "01:30",
+          "timeOfDay": "MORNING",
+          "icon": "deadline"
+        },
+        {
+          "id": "match-day-2026-11-24",
+          "name": "Match Coverage",
+          "date": "2026-11-24",
+          "time": "19:45",
+          "timeOfDay": "EVENING",
+          "icon": "football"
+        },
+        {
+          "id": "match-day-2026-11-29",
+          "name": "Match Coverage",
+          "date": "2026-11-29",
+          "time": null,
+          "timeOfDay": "ANYTIME",
+          "icon": "football"
+        }
       ]
     }
-  ]
+  ],
+  "matchDayDescription": {
+    "zone": "Europe/London",
+    "id": "match-day-2026-11-24",
+    "description": "2 matches:\n17:45  Galatasaray v Aston Villa · UEFA Champions League\n20:00  Arsenal v Dortmund · UEFA Champions League"
+  }
 }

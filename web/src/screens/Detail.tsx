@@ -116,7 +116,7 @@ export function Detail({ task, today, dark, onClose, onEdit, showBack }: Props) 
             </span>
           </div>
         </div>
-        {task.description && <p className="m-0 text-[15px] leading-relaxed">{task.description}</p>}
+        {task.description && <p className="m-0 whitespace-pre-line text-[15px] leading-relaxed">{task.description}</p>}
         {task.auto && (
           <p className="m-0 rounded-2xl bg-surface p-3 text-[13px] text-text2">
             Added automatically from {task.auto === 'MATCH' ? 'the Premier League fixture list (all competitions)' : 'the official FPL site'}. It updates itself if the time changes. Turn it off in Settings › Football.

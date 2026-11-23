@@ -3,7 +3,7 @@ import type { Settings, Task, TimeOfDay } from './model';
 
 // Turns the football feed (football.json, built by scripts/football-feed.mjs)
 // into read-only tasks: one per FPL gameweek deadline and one "Match
-// Coverage" per match an English Premier League team plays. They are made
+// Coverage" per day on which an English Premier League team plays. They are made
 // fresh on every load and never saved, so a re-sync can't duplicate them;
 // ticks are normal completions keyed by the stable ids below.
 // Kotlin twin: android/core/src/main/kotlin/app/dailytasks/core/Football.kt
@@ -35,7 +35,8 @@ export interface FootballFeed {
 }
 
 export const deadlineTaskId = (gw: number) => `fpl-gw-${gw}`;
-export const matchTaskId = (matchId: string) => `match-${matchId}`;
+/** One Match Coverage task per local day. */
+export const matchDayTaskId = (date: LocalDate) => `match-day-${date}`;
 
 /** Local date and "HH:mm" of an instant, in the device's zone (or `timeZone`). */
 export function localDateTime(iso: string, timeZone?: string): { date: LocalDate; time: string } {
@@ -74,19 +75,26 @@ export function footballTasks(feed: FootballFeed | null, settings: Pick<Settings
     }
   }
   if (settings.matchCoverage !== false) {
-    for (const m of feed.matches ?? []) {
+    // One task per day, listing that day's matches in kick-off order.
+    const byDay = new Map<LocalDate, { time: string | null; line: string }[]>();
+    for (const m of [...(feed.matches ?? [])].sort((x, y) => (x.kickoff < y.kickoff ? -1 : x.kickoff > y.kickoff ? 1 : 0))) {
       const { date, time } = localDateTime(m.kickoff, timeZone);
       const t = m.timeValid ? time : null;
-      const bits = [m.competition, t ? `kick-off ${t}` : 'kick-off time to be confirmed', m.venue].filter(Boolean);
+      const list = byDay.get(date) ?? [];
+      list.push({ time: t, line: `${t ?? 'TBC'}  ${m.home.short} v ${m.away.short} · ${m.competition}` });
+      byDay.set(date, list);
+    }
+    for (const [date, list] of byDay) {
+      const first = list.find((x) => x.time)?.time ?? null;
       out.push({
-        ...base(matchTaskId(m.id), 'MATCH'),
-        name: `Match Coverage: ${m.home.short} v ${m.away.short}`,
-        shortName: `${m.home.short} v ${m.away.short}`,
-        description: `${m.home.name} v ${m.away.name} · ${bits.join(' · ')}`,
+        ...base(matchDayTaskId(date), 'MATCH'),
+        name: 'Match Coverage',
+        shortName: `${list.length} ${list.length === 1 ? 'match' : 'matches'}`,
+        description: `${list.length} ${list.length === 1 ? 'match' : 'matches'}:\n${list.map((x) => x.line).join('\n')}`,
         icon: 'football',
         color: 'green',
-        time: t,
-        timeOfDay: timeOfDayFor(t),
+        time: first,
+        timeOfDay: timeOfDayFor(first),
         repeat: { type: 'NONE', dueDate: date, fixed: true },
       });
     }

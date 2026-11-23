@@ -104,7 +104,7 @@ export function App() {
   const panelContent =
     panel?.kind === 'edit' ? (
       <Editor
-        key={panel.task?.id ?? `new-${panel.preset?.name ?? ''}`}
+        key={panel.task?.id ?? `new-${panel.preset?.name ?? ''}-${panel.preset?.repeat?.dueDate ?? ''}`}
         task={panel.task}
         preset={panel.preset}
         today={today}
@@ -130,6 +130,7 @@ export function App() {
           today={today}
           dark={dark}
           onOpen={openDetail}
+          onAdd={(d) => openEditor(null, { repeat: { type: 'NONE', dueDate: d } })}
           onOpenDay={(d) => {
             setDate(d);
             setTab('today');

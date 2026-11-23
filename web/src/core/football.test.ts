@@ -10,6 +10,11 @@ describe('football feed to tasks', () => {
       expect(tasks.map((t) => ({ id: t.id, name: t.name, date: t.repeat.dueDate, time: t.time, timeOfDay: t.timeOfDay, icon: t.icon }))).toEqual(z.expect);
     });
   }
+  it('lists the day\'s matches in the details', () => {
+    const c = cases.matchDayDescription;
+    const t = footballTasks(cases.feed as FootballFeed, {}, c.zone).find((x) => x.id === c.id);
+    expect(t?.description).toBe(c.description);
+  });
   it('settings turn each kind off', () => {
     const feed = cases.feed as FootballFeed;
     expect(footballTasks(feed, { fplDeadlines: false }, 'UTC').every((t) => t.auto === 'MATCH')).toBe(true);
@@ -18,7 +23,7 @@ describe('football feed to tasks', () => {
   });
   it('matches stay on their day and are not moved to the next one', () => {
     const tasks = footballTasks(cases.feed as FootballFeed, {}, 'Europe/London');
-    expect(itemsForDay(tasks, [], '2026-11-24', '2026-11-25', 1).map((i) => i.task.id)).toEqual(['match-401915295']);
+    expect(itemsForDay(tasks, [], '2026-11-24', '2026-11-25', 1).map((i) => i.task.id)).toEqual(['match-day-2026-11-24']);
     expect(itemsForDay(tasks, [], '2026-11-25', '2026-11-25', 1)).toEqual([]);
   });
 });
