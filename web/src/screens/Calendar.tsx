@@ -16,10 +16,12 @@ interface Props {
   dark: boolean;
   onOpen: (t: Task) => void;
   onOpenDay: (d: LocalDate) => void;
+  /** Start a new task due on this day. */
+  onAdd: (d: LocalDate) => void;
   topBar: React.ReactNode;
 }
 
-export function Calendar({ today, dark, onOpen, onOpenDay, topBar }: Props) {
+export function Calendar({ today, dark, onOpen, onOpenDay, onAdd, topBar }: Props) {
   const { tasks: ownTasks, completions, settings } = useAppState();
   const tasks = useAllTasks(ownTasks, settings);
   const weekStart = settings.firstDayOfWeek;
@@ -112,7 +114,7 @@ export function Calendar({ today, dark, onOpen, onOpenDay, topBar }: Props) {
               ))}
             </div>
           </div>
-          {view === 'week' && <WeekGrid days={weekDays} items={weekItems} today={today} dark={dark} onOpen={onOpen} onOpenDay={onOpenDay} />}
+          {view === 'week' && <WeekGrid days={weekDays} items={weekItems} today={today} dark={dark} onOpen={onOpen} onOpenDay={onOpenDay} onAdd={onAdd} />}
           {view === 'month' && <div className="grid grid-cols-7 overflow-hidden rounded-xl border border-divider" role="grid" aria-label={`${monthLong(month.m)} ${month.y}`}>
             {headers.map((w) => (
               <div key={w} role="columnheader" className="border-b border-divider py-1.5 text-center text-xs font-medium text-text2">
@@ -185,6 +187,10 @@ export function Calendar({ today, dark, onOpen, onOpenDay, topBar }: Props) {
                 {dayItems.length === 0 ? 'Nothing due' : `${dayItems.length} ${dayItems.length === 1 ? 'task' : 'tasks'}${selected <= today ? ` · ${doneCount} done` : ''}`}
               </span>
             </div>
+            <button type="button" onClick={() => onAdd(selected)} className="flex h-10 items-center gap-1 rounded-full bg-primary px-4 text-sm font-semibold text-on-primary">
+              <Icon name="plus" size={16} strokeWidth={2.4} />
+              Add task
+            </button>
             <button type="button" onClick={() => onOpenDay(selected)} className="h-10 rounded-full border border-outline px-4 text-sm font-semibold text-primary hover:bg-surface2">
               Open day
             </button>
@@ -218,7 +224,7 @@ function DayRow({ item, date, today, dark, onOpen }: { item: TodayItem; date: Lo
 }
 
 /** A week as seven columns of cards, one card per task (like a content calendar). */
-function WeekGrid({ days, items, today, dark, onOpen, onOpenDay }: { days: LocalDate[]; items: TodayItem[][]; today: LocalDate; dark: boolean; onOpen: (t: Task) => void; onOpenDay: (d: LocalDate) => void }) {
+function WeekGrid({ days, items, today, dark, onOpen, onOpenDay, onAdd }: { days: LocalDate[]; items: TodayItem[][]; today: LocalDate; dark: boolean; onOpen: (t: Task) => void; onOpenDay: (d: LocalDate) => void; onAdd: (d: LocalDate) => void }) {
   return (
     <div className="-mx-2 overflow-x-auto px-2 pb-1 sm:mx-0 sm:px-0">
       <div className="grid min-w-[880px] grid-cols-7 gap-2">
@@ -235,6 +241,15 @@ function WeekGrid({ days, items, today, dark, onOpen, onOpenDay }: { days: Local
                 {its.map((i) => (
                   <WeekCard key={i.task.id} item={i} date={d} today={today} dark={dark} onOpen={() => onOpen(i.task)} />
                 ))}
+                <button
+                  type="button"
+                  onClick={() => onAdd(d)}
+                  aria-label={`Add a task on ${longLabel(d)}`}
+                  className="flex h-9 items-center justify-center gap-1 rounded-xl border border-dashed border-outline text-xs font-semibold text-text2 hover:border-primary hover:bg-surface2 hover:text-primary"
+                >
+                  <Icon name="plus" size={14} strokeWidth={2.4} />
+                  Add
+                </button>
               </div>
             </section>
           );

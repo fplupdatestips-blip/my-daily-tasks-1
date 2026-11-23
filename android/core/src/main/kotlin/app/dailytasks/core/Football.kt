@@ -30,7 +30,8 @@ data class FootballFeed(val updatedAt: String, val deadlines: List<FeedDeadline>
 
 object Football {
     fun deadlineTaskId(gw: Int) = "fpl-gw-$gw"
-    fun matchTaskId(matchId: String) = "match-$matchId"
+    /** One Match Coverage task per local day. */
+    fun matchDayTaskId(date: java.time.LocalDate) = "match-day-$date"
 
     private val HHMM = DateTimeFormatter.ofPattern("HH:mm")
 
@@ -62,20 +63,25 @@ object Football {
             }
         }
         if (settings.matchCoverage) {
-            for (m in feed.matches) {
+            // One task per day, listing that day's matches in kick-off order.
+            val byDay = linkedMapOf<java.time.LocalDate, MutableList<Pair<String?, String>>>()
+            for (m in feed.matches.sortedBy { it.kickoff }) {
                 val local = m.kickoff.atZone(zone)
                 val time = if (m.timeValid) local.format(HHMM) else null
-                val bits = listOf(m.competition, if (time != null) "kick-off $time" else "kick-off time to be confirmed", m.venue).filter { it.isNotEmpty() }
+                byDay.getOrPut(local.toLocalDate()) { mutableListOf() } += time to "${time ?: "TBC"}  ${m.home.short} v ${m.away.short} · ${m.competition}"
+            }
+            for ((date, list) in byDay) {
+                val first = list.firstNotNullOfOrNull { it.first }
                 out += Task(
-                    id = matchTaskId(m.id),
-                    name = "Match Coverage: ${m.home.short} v ${m.away.short}",
-                    shortName = "${m.home.short} v ${m.away.short}",
-                    description = "${m.home.name} v ${m.away.name} · ${bits.joinToString(" · ")}",
+                    id = matchDayTaskId(date),
+                    name = "Match Coverage",
+                    shortName = "${list.size} ${if (list.size == 1) "match" else "matches"}",
+                    description = "${list.size} ${if (list.size == 1) "match" else "matches"}:\n" + list.joinToString("\n") { it.second },
                     icon = "football",
                     color = "green",
-                    time = time,
-                    timeOfDay = timeOfDayFor(time),
-                    repeat = Repeat(type = RepeatType.NONE, dueDate = local.toLocalDate(), fixed = true),
+                    time = first,
+                    timeOfDay = timeOfDayFor(first),
+                    repeat = Repeat(type = RepeatType.NONE, dueDate = date, fixed = true),
                     auto = "MATCH",
                 )
             }

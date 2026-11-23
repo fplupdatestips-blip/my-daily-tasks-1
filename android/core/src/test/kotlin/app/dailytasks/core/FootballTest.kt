@@ -47,6 +47,13 @@ class FootballTest {
     }
 
     @Test
+    fun listsTheDaysMatches() {
+        val c = root.getJSONObject("matchDayDescription")
+        val t = Football.tasks(feed, Settings(), ZoneId.of(c.getString("zone"))).first { it.id == c.getString("id") }
+        assertEquals(c.getString("description"), t.description)
+    }
+
+    @Test
     fun settingsTurnEachKindOff() {
         val utc = ZoneId.of("UTC")
         assert(Football.tasks(feed, Settings(fplDeadlines = false), utc).all { it.auto == "MATCH" })
@@ -58,7 +65,7 @@ class FootballTest {
     fun matchesAreNotMovedToTheNextDay() {
         val tasks = Football.tasks(feed, Settings(), ZoneId.of("Europe/London"))
         val today = LocalDate.parse("2026-11-25")
-        assertEquals(listOf("match-401915295"), TodayItems.forDay(tasks, emptyList(), LocalDate.parse("2026-11-24"), today, 1).map { it.task.id })
+        assertEquals(listOf("match-day-2026-11-24"), TodayItems.forDay(tasks, emptyList(), LocalDate.parse("2026-11-24"), today, 1).map { it.task.id })
         assertEquals(emptyList(), TodayItems.forDay(tasks, emptyList(), today, today, 1).map { it.task.id })
     }
 }

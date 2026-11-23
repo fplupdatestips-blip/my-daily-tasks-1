@@ -68,6 +68,8 @@ fun CalendarScreen(
     onOpen: (Task) -> Unit,
     onOpenDay: (LocalDate) -> Unit,
     onSettings: () -> Unit,
+    /** Start a new task due on this day. */
+    onAdd: (LocalDate) -> Unit,
 ) {
     val c = LocalAppColors.current
     val weekStart = data.settings.firstDayOfWeek
@@ -145,7 +147,7 @@ fun CalendarScreen(
                     modifier = Modifier.padding(start = 6.dp, top = 4.dp, bottom = 4.dp),
                 )
                 if (view == "week") {
-                    WeekStrip(weekDays, weekItems, today, onOpen, onOpenDay)
+                    WeekStrip(weekDays, weekItems, today, onOpen, onOpenDay, onAdd)
                 } else {
                 Row(Modifier.fillMaxWidth()) {
                     (0 until 7).forEach { i ->
@@ -185,6 +187,11 @@ fun CalendarScreen(
                         fontSize = 14.sp, color = c.text2,
                     )
                 }
+                Box(
+                    Modifier.padding(end = 8.dp).height(40.dp).background(c.primary, RoundedCornerShape(20.dp)).clickable(role = Role.Button) { onAdd(selected) }
+                        .padding(horizontal = 14.dp),
+                    contentAlignment = Alignment.Center,
+                ) { Text("+ Add task", color = c.onPrimary, fontWeight = FontWeight.SemiBold, fontSize = 14.sp) }
                 Box(
                     Modifier.height(40.dp).border(1.dp, c.outline, RoundedCornerShape(20.dp)).clickable(role = Role.Button) { onOpenDay(selected) }
                         .padding(horizontal = 16.dp),
@@ -296,7 +303,7 @@ private fun DayRow(item: TodayItem, date: LocalDate, today: LocalDate, onOpen: (
 
 /** A week as seven side-by-side columns (scroll sideways), one card per task. */
 @Composable
-private fun WeekStrip(days: List<LocalDate>, items: List<List<TodayItem>>, today: LocalDate, onOpen: (Task) -> Unit, onOpenDay: (LocalDate) -> Unit) {
+private fun WeekStrip(days: List<LocalDate>, items: List<List<TodayItem>>, today: LocalDate, onOpen: (Task) -> Unit, onOpenDay: (LocalDate) -> Unit, onAdd: (LocalDate) -> Unit) {
     val c = LocalAppColors.current
     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         days.forEachIndexed { i, d ->
@@ -322,6 +329,11 @@ private fun WeekStrip(days: List<LocalDate>, items: List<List<TodayItem>>, today
                 Box(Modifier.fillMaxWidth().height(1.dp).background(c.divider))
                 Column(Modifier.padding(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     its.forEach { WeekCard(it, d, today) { onOpen(it.task) } }
+                    Box(
+                        Modifier.fillMaxWidth().height(36.dp).border(1.dp, c.outline, RoundedCornerShape(12.dp))
+                            .clickable(role = Role.Button, onClickLabel = "Add a task on ${Describe.longLabel(d)}") { onAdd(d) },
+                        contentAlignment = Alignment.Center,
+                    ) { Text("+ Add", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = c.text2) }
                 }
             }
         }

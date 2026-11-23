@@ -40,7 +40,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.dailytasks.AppViewModel
 import app.dailytasks.AuthUi
+import app.dailytasks.core.Repeat
 import app.dailytasks.core.RepeatEngine
+import app.dailytasks.core.RepeatType
 import app.dailytasks.core.Task
 import app.dailytasks.ui.screens.CalendarScreen
 import app.dailytasks.ui.screens.DetailScreen
@@ -239,6 +241,7 @@ private fun MainShell(vm: AppViewModel) {
                         tab = "today"
                     },
                     onSettings = openSettings,
+                    onAdd = { d -> overlay = Overlay.Edit(null, Task(id = "", name = "", repeat = Repeat(type = RepeatType.NONE, dueDate = d))) },
                 )
                 "tasks" -> TasksScreen(vm, data, today, onOpen = { overlay = Overlay.Detail(it.id) }, onSettings = openSettings)
                 "progress" -> ProgressScreen(data, today, onSettings = openSettings)

@@ -39,7 +39,7 @@ export function TaskCard({ item, dark, selected, onToggle, onSubtask, onOpen, on
             <span className="self-start rounded-md bg-amber-tint px-1.5 py-0.5 text-[11px] font-semibold tracking-wide text-streak">{item.late}</span>
           )}
           <span className={`text-base font-medium ${done ? 'text-text2 line-through' : ''}`}>{task.name}</span>
-          {task.description && <span className="line-clamp-3 text-[13px] leading-snug text-text2">{task.description}</span>}
+          {task.description && <span className="line-clamp-3 whitespace-pre-line text-[13px] leading-snug text-text2">{task.description}</span>}
           <span className="flex flex-wrap items-center gap-x-2.5 text-[13px] text-text2">
             <span>{skipped ? 'Skipped' : meta}</span>
             {subs.length > 0 && (
