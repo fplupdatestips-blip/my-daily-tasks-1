@@ -15,6 +15,8 @@ data class Repeat(
     val type: RepeatType = RepeatType.DAILY,
     /** NONE: the day the one-off task is due. */
     val dueDate: LocalDate? = null,
+    /** NONE only: shown on dueDate and never moved to the next day (matches, deadlines). */
+    val fixed: Boolean = false,
     /** DAILY: every N days. AFTER_DONE: N days after the last completion. */
     val interval: Int? = null,
     /** WEEKLY: ISO weekdays, 1 = Monday ... 7 = Sunday. */
@@ -63,6 +65,8 @@ data class Task(
     val createdAt: Long = 0,
     val archived: Boolean = false,
     val pausedUntil: LocalDate? = null,
+    /** Made by the app from the football feed, never saved: "FPL_DEADLINE" or "MATCH". */
+    val auto: String? = null,
 )
 
 enum class CompletionStatus { DONE, SKIPPED, PARTIAL }
@@ -84,6 +88,10 @@ data class Settings(
     val firstDayOfWeek: Int = 1,
     /** 0-4: hour after midnight when "today" ends. */
     val dayEndsAt: Int = 0,
+    /** Show FPL gameweek deadlines in Today and the calendar. */
+    val fplDeadlines: Boolean = true,
+    /** Show "Match Coverage" for every Premier League team's match. */
+    val matchCoverage: Boolean = true,
 )
 
 fun completionId(taskId: String, date: LocalDate) = "${taskId}_$date"

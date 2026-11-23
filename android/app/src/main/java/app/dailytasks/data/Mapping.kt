@@ -130,6 +130,13 @@ fun completionToDoc(c: Completion): Map<String, Any?> = mapOf(
 fun settingsFromDoc(d: Map<String, Any?>?): Settings = Settings(
     firstDayOfWeek = d?.get("firstDayOfWeek").asInt() ?: 1,
     dayEndsAt = d?.get("dayEndsAt").asInt() ?: 0,
+    fplDeadlines = d?.get("fplDeadlines") as? Boolean ?: true,
+    matchCoverage = d?.get("matchCoverage") as? Boolean ?: true,
 )
 
-fun settingsToDoc(s: Settings): Map<String, Any?> = mapOf("firstDayOfWeek" to s.firstDayOfWeek, "dayEndsAt" to s.dayEndsAt)
+fun settingsToDoc(s: Settings): Map<String, Any?> = mapOf(
+    "firstDayOfWeek" to s.firstDayOfWeek,
+    "dayEndsAt" to s.dayEndsAt,
+    "fplDeadlines" to s.fplDeadlines,
+    "matchCoverage" to s.matchCoverage,
+)

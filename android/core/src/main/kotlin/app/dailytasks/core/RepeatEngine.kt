@@ -96,6 +96,7 @@ object RepeatEngine {
 
         if (r.type == RepeatType.NONE) {
             val dueDate = r.dueDate ?: date
+            if (r.fixed) return if (date == dueDate) DueInfo(true) else NOT_DUE
             if (date < dueDate) return NOT_DUE
             // Finished (done or skipped) on an earlier day: gone.
             if (marks.any { it.date < date && it.date >= dueDate && it.status != CompletionStatus.PARTIAL }) return NOT_DUE

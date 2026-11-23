@@ -232,6 +232,23 @@ export function SettingsScreen({ theme, setTheme, onClose, showBack }: { theme: 
           </div>
         </section>
         <section className="rounded-[20px] bg-surface px-4">
+          <h2 className="mb-0 mt-3 text-[13px] font-semibold uppercase tracking-wider text-text2">Football</h2>
+          <div className={row}>
+            <label htmlFor="fpl" className="flex flex-col">
+              FPL deadlines
+              <span className="text-[13px] text-text2">Each gameweek deadline, added automatically</span>
+            </label>
+            <input id="fpl" type="checkbox" checked={settings.fplDeadlines !== false} onChange={(e) => void store.saveSettings({ ...settings, fplDeadlines: e.target.checked })} className="size-5 accent-[var(--primary)]" />
+          </div>
+          <div className={row}>
+            <label htmlFor="matches" className="flex flex-col">
+              Match Coverage
+              <span className="text-[13px] text-text2">Every match a Premier League team plays, in any competition</span>
+            </label>
+            <input id="matches" type="checkbox" checked={settings.matchCoverage !== false} onChange={(e) => void store.saveSettings({ ...settings, matchCoverage: e.target.checked })} className="size-5 accent-[var(--primary)]" />
+          </div>
+        </section>
+        <section className="rounded-[20px] bg-surface px-4">
           <h2 className="mb-0 mt-3 text-[13px] font-semibold uppercase tracking-wider text-text2">Data</h2>
           <div className={row}>
             <span className="flex flex-col">

@@ -4,6 +4,7 @@ import { describeRepeat, formatTime } from '../core/describe';
 import type { Task } from '../core/model';
 import { calendarItems, monthGrid } from '../core/calendar';
 import type { TodayItem } from '../core/today';
+import { useAllTasks } from '../data/football';
 import { useAppState, useMedia } from '../ui/hooks';
 import { Icon } from '../ui/icons';
 import { taskColors } from '../ui/palette';
@@ -19,7 +20,8 @@ interface Props {
 }
 
 export function Calendar({ today, dark, onOpen, onOpenDay, topBar }: Props) {
-  const { tasks, completions, settings } = useAppState();
+  const { tasks: ownTasks, completions, settings } = useAppState();
+  const tasks = useAllTasks(ownTasks, settings);
   const weekStart = settings.firstDayOfWeek;
   const wide = useMedia('(min-width: 600px)');
   const [month, setMonth] = useState(() => ({ y: parts(today).y, m: parts(today).m }));

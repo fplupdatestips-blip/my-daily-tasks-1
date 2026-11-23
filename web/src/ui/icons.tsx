@@ -23,6 +23,9 @@ const P: Record<string, string> = {
   phone: 'M8 3h8a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM11 18h2',
   star: 'M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z',
   check: 'm5 12 5 5 9-10',
+  // auto tasks from the football feed
+  football: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 8l3 2.2-1.1 3.6h-3.8L9 10.2zM12 3v5M15 10.2l5.5-1.5M13.9 13.8l3 4.4M10.1 13.8l-3 4.4M9 10.2 3.5 8.7',
+  deadline: 'M12 8a6 6 0 1 0 0 12 6 6 0 0 0 0-12zM12 11v3l2 1.5M10 3h4M12 3v5M18 6.5l1.5-1.5',
   // ui icons
   plus: 'M12 5v14M5 12h14',
   close: 'M6 6l12 12M18 6 6 18',

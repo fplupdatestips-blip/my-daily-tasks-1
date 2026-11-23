@@ -79,6 +79,7 @@ export function dueInfo(task: RuleTask, date: LocalDate, marks: DayMark[], weekS
 
   if (r.type === 'NONE') {
     const dueDate = r.dueDate ?? date;
+    if (r.fixed) return date === dueDate ? { due: true, overdueDays: 0 } : NOT_DUE;
     if (date < dueDate) return NOT_DUE;
     // Finished (done or skipped) on an earlier day: gone.
     if (marks.some((m) => m.date < date && m.date >= dueDate && m.status !== 'PARTIAL')) return NOT_DUE;

@@ -6,6 +6,7 @@ import { Detail } from './screens/Detail';
 import { Editor } from './screens/Editor';
 import { Progress, SettingsScreen, SignIn, TasksList } from './screens/OtherScreens';
 import { Today } from './screens/Today';
+import { useAllTasks } from './data/football';
 import { useAppState, useMedia, useNow, useStore, useTheme } from './ui/hooks';
 import { Icon } from './ui/icons';
 
@@ -22,6 +23,7 @@ const TABS: { key: Tab; label: string; icon: string }[] = [
 export function App() {
   const store = useStore();
   const state = useAppState();
+  const allTasks = useAllTasks(state.tasks, state.settings);
   const { theme, setTheme, dark } = useTheme();
   const now = useNow();
   const today = logicalToday(now, state.settings.dayEndsAt);
@@ -98,7 +100,7 @@ export function App() {
   );
 
   const nextSort = state.tasks.reduce((m, t) => Math.max(m, t.sortOrder), 0) + 1;
-  const detailTask = panel?.kind === 'detail' ? state.tasks.find((t) => t.id === panel.id) : undefined;
+  const detailTask = panel?.kind === 'detail' ? allTasks.find((t) => t.id === panel.id) : undefined;
   const panelContent =
     panel?.kind === 'edit' ? (
       <Editor

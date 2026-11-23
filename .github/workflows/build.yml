@@ -4,6 +4,10 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+  # Refresh FPL deadlines and Premier League teams' matches (football.json)
+  # and republish the web app, which serves it to web and Android.
+  schedule:
+    - cron: '17 */6 * * *'
 
 jobs:
   web:
@@ -20,6 +24,9 @@ jobs:
           cache-dependency-path: web/package-lock.json
       - run: npm ci
       - run: npm test
+      - name: Fetch FPL deadlines and Premier League teams' matches
+        run: node ../scripts/football-feed.mjs public/football.json
+        continue-on-error: true
       - run: npm run build
       - name: Check for Firebase deploy key
         id: deploykey
@@ -38,6 +45,7 @@ jobs:
           entryPoint: .
 
   android:
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     defaults:
       run:

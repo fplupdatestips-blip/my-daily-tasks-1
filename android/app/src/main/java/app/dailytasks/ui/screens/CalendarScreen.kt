@@ -74,10 +74,10 @@ fun CalendarScreen(
 
     val rows = remember(month, weekStart) { CalendarItems.monthGrid(month, weekStart) }
     val byDay = remember(rows, data, today) {
-        rows.flatten().filterNotNull().associateWith { CalendarItems.forDay(data.tasks, data.completions, it, today, weekStart) }
+        rows.flatten().filterNotNull().associateWith { CalendarItems.forDay(data.allTasks, data.completions, it, today, weekStart) }
     }
     val dayItems = remember(byDay, selected, data, today) {
-        byDay[selected] ?: CalendarItems.forDay(data.tasks, data.completions, selected, today, weekStart)
+        byDay[selected] ?: CalendarItems.forDay(data.allTasks, data.completions, selected, today, weekStart)
     }
     val doneCount = dayItems.count { it.done }
 

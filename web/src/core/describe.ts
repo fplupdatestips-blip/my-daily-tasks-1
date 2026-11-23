@@ -14,6 +14,7 @@ export function describeRepeat(r: Repeat, short = false): string {
     case 'SOMEDAY':
       return 'No date yet';
     case 'NONE':
+      if (r.fixed) return short ? 'On the day' : r.dueDate ? `On ${longLabel(r.dueDate)}` : 'Once';
       return short ? 'One-off' : r.dueDate ? `Once, on ${longLabel(r.dueDate)}` : 'Once';
     case 'DAILY':
       return (r.interval ?? 1) <= 1 ? 'Every day' : `Every ${r.interval} days`;

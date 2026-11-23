@@ -77,7 +77,7 @@ export function Detail({ task, today, dark, onClose, onEdit, showBack }: Props) 
         <button type="button" aria-label={showBack ? 'Back' : 'Close details'} onClick={onClose} className="flex size-12 items-center justify-center rounded-full hover:bg-surface2">
           <Icon name={showBack ? 'back' : 'close'} size={22} />
         </button>
-        <div className="flex">
+        {!task.auto && <div className="flex">
           <button type="button" aria-label="Edit" onClick={onEdit} className="flex size-12 items-center justify-center rounded-full text-text2 hover:bg-surface2">
             <Icon name="edit" />
           </button>
@@ -90,7 +90,7 @@ export function Detail({ task, today, dark, onClose, onEdit, showBack }: Props) 
           <button type="button" aria-label="Delete" onClick={() => setConfirmDelete(true)} className="flex size-12 items-center justify-center rounded-full text-text2 hover:bg-surface2">
             <Icon name="trash" />
           </button>
-        </div>
+        </div>}
       </header>
 
       <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 pb-6">
@@ -117,6 +117,11 @@ export function Detail({ task, today, dark, onClose, onEdit, showBack }: Props) 
           </div>
         </div>
         {task.description && <p className="m-0 text-[15px] leading-relaxed">{task.description}</p>}
+        {task.auto && (
+          <p className="m-0 rounded-2xl bg-surface p-3 text-[13px] text-text2">
+            Added automatically from {task.auto === 'MATCH' ? 'the Premier League fixture list (all competitions)' : 'the official FPL site'}. It updates itself if the time changes. Turn it off in Settings › Football.
+          </p>
+        )}
 
         <div className="grid grid-cols-3 gap-2">
           {calendarRule ? (
