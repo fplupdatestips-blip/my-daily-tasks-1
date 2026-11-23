@@ -23,4 +23,5 @@ tasks.test {
     // The shared test cases live at the repo root, used by the web tests too.
     systemProperty("repeatCases", project.file("../../shared/repeat-cases.json").absolutePath)
     systemProperty("calendarCases", project.file("../../shared/calendar-cases.json").absolutePath)
+    systemProperty("footballCases", project.file("../../shared/football-cases.json").absolutePath)
 }

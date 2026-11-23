@@ -169,7 +169,7 @@ private fun MainShell(vm: AppViewModel) {
             return
         }
         is Overlay.Detail -> {
-            val task = data.tasks.firstOrNull { it.id == o.taskId }
+            val task = data.allTasks.firstOrNull { it.id == o.taskId }
             if (task != null) {
                 DetailScreen(vm, task, today, onBack = { overlay = null }, onEdit = { overlay = Overlay.Edit(task) })
                 return

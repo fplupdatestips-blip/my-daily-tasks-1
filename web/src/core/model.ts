@@ -10,6 +10,8 @@ export interface Repeat {
   type: RepeatType;
   /** NONE: the day the one-off task is due. SOMEDAY has no date yet and is never due. */
   dueDate?: LocalDate;
+  /** NONE only: shown on dueDate and never moved to the next day (matches, deadlines). */
+  fixed?: boolean;
   /** DAILY: every N days. AFTER_DONE: N days after the last completion. */
   interval?: number;
   /** WEEKLY: ISO weekdays, 1 = Monday ... 7 = Sunday. */
@@ -64,6 +66,10 @@ export interface Task {
   pausedUntil?: LocalDate | null;
   updatedAt?: unknown;
   deleted?: boolean;
+  /** Made by the app from the football feed, never saved: FPL deadline or match. */
+  auto?: 'FPL_DEADLINE' | 'MATCH';
+  /** Auto tasks: a shorter label for the small calendar chips. */
+  shortName?: string;
 }
 
 export type CompletionStatus = 'DONE' | 'SKIPPED' | 'PARTIAL';
@@ -86,6 +92,10 @@ export interface Settings {
   firstDayOfWeek: number;
   /** 0-4: hour after midnight when "today" ends. */
   dayEndsAt: number;
+  /** Show FPL gameweek deadlines in Today and the calendar (default on). */
+  fplDeadlines?: boolean;
+  /** Show "Match Coverage" for every Premier League team's match (default on). */
+  matchCoverage?: boolean;
 }
 
 /** Device-only, not synced: each device can have its own theme. */

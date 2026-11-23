@@ -18,6 +18,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -48,6 +50,8 @@ import androidx.compose.ui.unit.sp
 import app.dailytasks.DataState
 import app.dailytasks.core.CalendarItems
 import app.dailytasks.core.Describe
+import app.dailytasks.core.RepeatEngine
+import app.dailytasks.core.TimeOfDay
 import app.dailytasks.core.Task
 import app.dailytasks.core.TodayItem
 import app.dailytasks.ui.appIcon
@@ -71,13 +75,25 @@ fun CalendarScreen(
     var selectedKey by rememberSaveable { mutableStateOf(today.toString()) }
     val month = YearMonth.parse(monthKey)
     val selected = LocalDate.parse(selectedKey)
+    var view by rememberSaveable { mutableStateOf("week") }
+    var weekKey by rememberSaveable { mutableStateOf(RepeatEngine.startOfWeek(today, weekStart).toString()) }
+    val weekFirst = RepeatEngine.startOfWeek(LocalDate.parse(weekKey), weekStart)
+    val weekDays = (0L until 7L).map { weekFirst.plusDays(it) }
+    val weekItems = remember(weekKey, weekStart, data, today) { weekDays.map { CalendarItems.forDay(data.allTasks, data.completions, it, today, weekStart) } }
+    val weekLabel = run {
+        val last = weekDays[6]
+        val m1 = Describe.monthLong(weekFirst.monthValue).take(3)
+        if (weekFirst.monthValue == last.monthValue) "$m1 ${weekFirst.dayOfMonth} – ${last.dayOfMonth}"
+        else "$m1 ${weekFirst.dayOfMonth} – ${Describe.monthLong(last.monthValue).take(3)} ${last.dayOfMonth}"
+    }
+    val atToday = if (view == "week") today in weekDays else month == YearMonth.from(today)
 
     val rows = remember(month, weekStart) { CalendarItems.monthGrid(month, weekStart) }
     val byDay = remember(rows, data, today) {
-        rows.flatten().filterNotNull().associateWith { CalendarItems.forDay(data.tasks, data.completions, it, today, weekStart) }
+        rows.flatten().filterNotNull().associateWith { CalendarItems.forDay(data.allTasks, data.completions, it, today, weekStart) }
     }
     val dayItems = remember(byDay, selected, data, today) {
-        byDay[selected] ?: CalendarItems.forDay(data.tasks, data.completions, selected, today, weekStart)
+        byDay[selected] ?: CalendarItems.forDay(data.allTasks, data.completions, selected, today, weekStart)
     }
     val doneCount = dayItems.count { it.done }
 
@@ -94,27 +110,43 @@ fun CalendarScreen(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { monthKey = month.minusMonths(1).toString() }, modifier = Modifier.size(40.dp)) {
-                        Icon(appIcon("chevronLeft"), contentDescription = "Previous month", tint = c.text2, modifier = Modifier.size(18.dp))
+                    Box(
+                        Modifier.height(40.dp).border(1.dp, c.outline, RoundedCornerShape(12.dp))
+                            .clickable(enabled = !atToday, role = Role.Button) {
+                                monthKey = YearMonth.from(today).toString()
+                                selectedKey = today.toString()
+                                weekKey = RepeatEngine.startOfWeek(today, weekStart).toString()
+                            }
+                            .padding(horizontal = 14.dp),
+                        contentAlignment = Alignment.Center,
+                    ) { Text("Today", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = if (atToday) c.text2 else c.text) }
+                    val unit = if (view == "week") "week" else "month"
+                    IconButton(onClick = { if (view == "week") weekKey = weekFirst.minusWeeks(1).toString() else monthKey = month.minusMonths(1).toString() }, modifier = Modifier.size(40.dp)) {
+                        Icon(appIcon("chevronLeft"), contentDescription = "Previous $unit", tint = c.text2, modifier = Modifier.size(18.dp))
                     }
-                    Text(
-                        "${Describe.monthLong(month.monthValue)} ${month.year}",
-                        fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = c.text,
-                        modifier = Modifier.weight(1f), textAlign = TextAlign.Center,
-                    )
-                    IconButton(onClick = { monthKey = month.plusMonths(1).toString() }, modifier = Modifier.size(40.dp)) {
-                        Icon(appIcon("chevronRight"), contentDescription = "Next month", tint = c.text2, modifier = Modifier.size(18.dp))
+                    IconButton(onClick = { if (view == "week") weekKey = weekFirst.plusWeeks(1).toString() else monthKey = month.plusMonths(1).toString() }, modifier = Modifier.size(40.dp)) {
+                        Icon(appIcon("chevronRight"), contentDescription = "Next $unit", tint = c.text2, modifier = Modifier.size(18.dp))
+                    }
+                    Box(Modifier.weight(1f))
+                    Row(Modifier.background(c.surface2, RoundedCornerShape(12.dp)).padding(3.dp)) {
+                        listOf("week" to "Week", "month" to "Month").forEach { (k, label) ->
+                            val on = view == k
+                            Box(
+                                Modifier.height(34.dp).background(if (on) c.surface else Color.Transparent, RoundedCornerShape(9.dp))
+                                    .clickable(role = Role.Tab) { view = k }.semantics { this.selected = on }.padding(horizontal = 12.dp),
+                                contentAlignment = Alignment.Center,
+                            ) { Text(label, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = if (on) c.text else c.text2) }
+                        }
                     }
                 }
-                if (month != YearMonth.from(today)) {
-                    TextButton(
-                        onClick = {
-                            monthKey = YearMonth.from(today).toString()
-                            selectedKey = today.toString()
-                        },
-                        modifier = Modifier.align(Alignment.CenterHorizontally),
-                    ) { Text("Back to today", color = c.primary, fontWeight = FontWeight.SemiBold) }
-                }
+                Text(
+                    if (view == "week") weekLabel else "${Describe.monthLong(month.monthValue)} ${month.year}",
+                    fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = c.text,
+                    modifier = Modifier.padding(start = 6.dp, top = 4.dp, bottom = 4.dp),
+                )
+                if (view == "week") {
+                    WeekStrip(weekDays, weekItems, today, onOpen, onOpenDay)
+                } else {
                 Row(Modifier.fillMaxWidth()) {
                     (0 until 7).forEach { i ->
                         val iso = (weekStart - 1 + i) % 7 + 1
@@ -138,9 +170,10 @@ fun CalendarScreen(
                         }
                     }
                 }
+                }
             }
         }
-        item {
+        if (view == "month") item {
             Row(Modifier.padding(start = 20.dp, end = 16.dp, top = 20.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text(if (selected == today) "Today" else Describe.longLabel(selected), fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = c.text)
@@ -159,7 +192,7 @@ fun CalendarScreen(
                 ) { Text("Open day", color = c.primary, fontWeight = FontWeight.SemiBold, fontSize = 14.sp) }
             }
         }
-        items(dayItems, key = { it.task.id }) { item ->
+        if (view == "month") items(dayItems, key = { it.task.id }) { item ->
             Box(Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) { DayRow(item, selected, today) { onOpen(item.task) } }
         }
     }
@@ -210,7 +243,7 @@ private fun DayCell(d: LocalDate, items: List<TodayItem>, today: LocalDate, sel:
             val (tint, fg) = taskColors(i.task.color, c.dark)
             val finished = i.done || i.skipped
             Text(
-                i.task.name,
+                i.task.shortName ?: i.task.name,
                 fontSize = 10.sp, lineHeight = 12.sp, fontWeight = FontWeight.Medium,
                 color = if (finished) fg.copy(alpha = 0.5f) else fg,
                 textDecoration = if (i.done) TextDecoration.LineThrough else null,
@@ -257,6 +290,86 @@ private fun DayRow(item: TodayItem, date: LocalDate, today: LocalDate, onOpen: (
                 else -> c.surface2 to c.text2
             }
             Text(status, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = sfg, modifier = Modifier.background(sbg, CircleShape).padding(horizontal = 10.dp, vertical = 4.dp))
+        }
+    }
+}
+
+/** A week as seven side-by-side columns (scroll sideways), one card per task. */
+@Composable
+private fun WeekStrip(days: List<LocalDate>, items: List<List<TodayItem>>, today: LocalDate, onOpen: (Task) -> Unit, onOpenDay: (LocalDate) -> Unit) {
+    val c = LocalAppColors.current
+    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        days.forEachIndexed { i, d ->
+            val its = items[i]
+            val isToday = d == today
+            Column(
+                Modifier.width(140.dp).fillMaxHeight().heightIn(min = 360.dp)
+                    .background(c.bg, RoundedCornerShape(16.dp))
+                    .border(if (isToday) 1.5.dp else 1.dp, if (isToday) c.primary else c.divider, RoundedCornerShape(16.dp)),
+            ) {
+                Column(
+                    Modifier.fillMaxWidth().clickable(role = Role.Button, onClickLabel = "Open this day") { onOpenDay(d) }
+                        .semantics(mergeDescendants = true) { contentDescription = (if (isToday) "Today, " else "") + Describe.longLabel(d) + ", ${its.size} tasks" }
+                        .padding(vertical = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    Text(Describe.weekdayShort(d.dayOfWeek.value), fontSize = 12.sp, color = c.text2, fontWeight = FontWeight.Medium)
+                    Box(Modifier.size(30.dp).background(if (isToday) c.primary else Color.Transparent, CircleShape), contentAlignment = Alignment.Center) {
+                        Text("${d.dayOfMonth}", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = if (isToday) c.onPrimary else if (d.isBefore(today)) c.text2 else c.text)
+                    }
+                }
+                Box(Modifier.fillMaxWidth().height(1.dp).background(c.divider))
+                Column(Modifier.padding(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    its.forEach { WeekCard(it, d, today) { onOpen(it.task) } }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun WeekCard(item: TodayItem, date: LocalDate, today: LocalDate, onClick: () -> Unit) {
+    val c = LocalAppColors.current
+    val t = item.task
+    val missed = !item.done && !item.skipped && date.isBefore(today)
+    val (label, icon) = when {
+        item.done -> "Done" to "check"
+        item.skipped -> "Skipped" to "skip"
+        missed -> "Missed" to "close"
+        else -> "To do" to "bell"
+    }
+    val pillBg = when { item.done -> c.done.copy(alpha = 0.15f); missed -> c.amberTint; else -> c.surface2 }
+    val pillFg = when { item.done -> c.done; missed -> c.streak; else -> c.text2 }
+    val time = t.time ?: when (t.timeOfDay) {
+        TimeOfDay.MORNING -> "Morning"
+        TimeOfDay.AFTERNOON -> "Afternoon"
+        TimeOfDay.EVENING -> "Evening"
+        TimeOfDay.ANYTIME -> "Any time"
+    }
+    Row(
+        Modifier.fillMaxWidth()
+            .background(if (item.done) c.done.copy(alpha = 0.10f) else c.surface, RoundedCornerShape(12.dp))
+            .border(1.dp, if (item.done) c.done.copy(alpha = 0.3f) else c.divider, RoundedCornerShape(12.dp))
+            .clickable(role = Role.Button, onClick = onClick)
+            .semantics(mergeDescendants = true) { contentDescription = "${t.name}, $time, $label" }
+            .padding(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        TaskIconBox(t.icon, t.color, 34.dp, 17.dp, t.image)
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(time, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = c.text, maxLines = 1)
+            Text(
+                t.shortName ?: t.name, fontSize = 12.sp, color = c.text2, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                textDecoration = if (item.done) TextDecoration.LineThrough else null,
+            )
+            Row(
+                Modifier.background(pillBg, RoundedCornerShape(6.dp)).padding(horizontal = 5.dp, vertical = 2.dp),
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp),
+            ) {
+                Icon(appIcon(icon, 2.6f), contentDescription = null, tint = pillFg, modifier = Modifier.size(10.dp))
+                Text(label, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = pillFg, maxLines = 1)
+            }
         }
     }
 }

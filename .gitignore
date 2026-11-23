@@ -13,3 +13,4 @@ android/*.iml
 .firebase/
 android/core/build/
 android/core/.gradle/
+web/public/football.json

@@ -60,9 +60,9 @@ export function TaskCard({ item, dark, selected, onToggle, onSubtask, onOpen, on
           <button type="button" onClick={onSkip} aria-label={skipped ? `Unskip ${task.name}` : `Skip ${task.name} today`} title="Skip (S)" className="flex size-10 items-center justify-center rounded-full text-text2 hover:bg-surface2">
             <Icon name="skip" size={18} />
           </button>
-          <button type="button" onClick={onEdit} aria-label={`Edit ${task.name}`} title="Edit (E)" className="flex size-10 items-center justify-center rounded-full text-text2 hover:bg-surface2">
+          {!task.auto && <button type="button" onClick={onEdit} aria-label={`Edit ${task.name}`} title="Edit (E)" className="flex size-10 items-center justify-center rounded-full text-text2 hover:bg-surface2">
             <Icon name="edit" size={18} />
-          </button>
+          </button>}
         </div>
         <button
           type="button"
@@ -112,7 +112,7 @@ export function TaskCard({ item, dark, selected, onToggle, onSubtask, onOpen, on
           {[
             [done ? 'Mark not done' : 'Mark done', onToggle],
             [skipped ? 'Unskip' : 'Skip today', onSkip],
-            ['Edit', onEdit],
+            ...(task.auto ? [] : [['Edit', onEdit]]),
             ['Details', onOpen],
           ].map(([label, fn]) => (
             <button key={label as string} role="menuitem" type="button" className="px-4 py-2.5 text-left text-sm hover:bg-surface2" onClick={() => { setMenu(false); (fn as () => void)(); }}>

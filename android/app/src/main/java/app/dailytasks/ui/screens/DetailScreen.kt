@@ -82,14 +82,16 @@ fun DetailScreen(vm: AppViewModel, task: Task, today: LocalDate, onBack: () -> U
         Row(Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) { Icon(appIcon("back", 2f), contentDescription = "Back", tint = c.text) }
             Box(Modifier.weight(1f))
-            IconButton(onClick = onEdit) { Icon(appIcon("edit"), contentDescription = "Edit", tint = c.text2) }
-            IconButton(onClick = { vm.saveTask(task.copy(pausedUntil = if (paused) null else PAUSED_FOREVER)) }) {
-                Icon(appIcon(if (paused) "play" else "pause"), contentDescription = if (paused) "Resume" else "Pause", tint = c.text2)
+            if (task.auto == null) {
+                IconButton(onClick = onEdit) { Icon(appIcon("edit"), contentDescription = "Edit", tint = c.text2) }
+                IconButton(onClick = { vm.saveTask(task.copy(pausedUntil = if (paused) null else PAUSED_FOREVER)) }) {
+                    Icon(appIcon(if (paused) "play" else "pause"), contentDescription = if (paused) "Resume" else "Pause", tint = c.text2)
+                }
+                IconButton(onClick = { vm.saveTask(task.copy(archived = !task.archived)) }) {
+                    Icon(appIcon("archive"), contentDescription = if (task.archived) "Unarchive" else "Archive", tint = c.text2)
+                }
+                IconButton(onClick = { confirmDelete = true }) { Icon(appIcon("trash"), contentDescription = "Delete", tint = c.text2) }
             }
-            IconButton(onClick = { vm.saveTask(task.copy(archived = !task.archived)) }) {
-                Icon(appIcon("archive"), contentDescription = if (task.archived) "Unarchive" else "Archive", tint = c.text2)
-            }
-            IconButton(onClick = { confirmDelete = true }) { Icon(appIcon("trash"), contentDescription = "Delete", tint = c.text2) }
         }
 
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -108,6 +110,14 @@ fun DetailScreen(vm: AppViewModel, task: Task, today: LocalDate, onBack: () -> U
                 }
             }
             if (task.description.isNotBlank()) Text(task.description, fontSize = 15.sp, color = c.text, lineHeight = 22.sp)
+            if (task.auto != null) {
+                val from = if (task.auto == "MATCH") "the Premier League fixture list (all competitions)" else "the official FPL site"
+                Text(
+                    "Added automatically from $from. It updates itself if the time changes. Turn it off in Settings › Football.",
+                    fontSize = 13.sp, color = c.text2,
+                    modifier = Modifier.fillMaxWidth().background(c.surface, RoundedCornerShape(16.dp)).padding(12.dp),
+                )
+            }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (calendarRule) {

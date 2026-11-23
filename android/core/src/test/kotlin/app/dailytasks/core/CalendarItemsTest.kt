@@ -26,6 +26,7 @@ class CalendarItemsTest {
                 repeat = Repeat(
                     type = RepeatType.valueOf(r.getString("type")),
                     dueDate = if (r.has("dueDate")) LocalDate.parse(r.getString("dueDate")) else null,
+                    fixed = r.optBoolean("fixed", false),
                     interval = if (r.has("interval")) r.getInt("interval") else null,
                     daysOfWeek = r.optJSONArray("daysOfWeek")?.let { a -> (0 until a.length()).map { a.getInt(it) } },
                 ),

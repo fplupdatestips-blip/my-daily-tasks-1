@@ -15,6 +15,9 @@ import app.dailytasks.core.Settings
 import app.dailytasks.core.Task
 import app.dailytasks.core.TodayItem
 import app.dailytasks.core.completionId
+import app.dailytasks.core.Football
+import app.dailytasks.core.FootballFeed
+import app.dailytasks.data.FootballFeedSource
 import app.dailytasks.data.Repository
 import app.dailytasks.data.SyncState
 import com.google.firebase.auth.FirebaseUser
@@ -33,6 +36,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -42,7 +46,12 @@ data class DataState(
     val completions: List<Completion> = emptyList(),
     val settings: Settings = Settings(),
     val sync: SyncState = SyncState.SYNCED,
-)
+    /** FPL deadline and Match Coverage tasks made from the football feed (never saved). */
+    val autoTasks: List<Task> = emptyList(),
+) {
+    /** What Today and the calendar show: the person's tasks plus the automatic ones. */
+    val allTasks: List<Task> get() = if (autoTasks.isEmpty()) tasks else tasks + autoTasks
+}
 
 sealed interface AuthUi {
     data object Loading : AuthUi
@@ -90,7 +99,20 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         awaitClose { cm.unregisterNetworkCallback(cb) }
     }
 
-    val data: StateFlow<DataState> = auth.flatMapLatest { a ->
+    private val feedSource = FootballFeedSource(app)
+    private val feed = MutableStateFlow<FootballFeed?>(feedSource.cached())
+
+    init {
+        // Refresh the football feed now and every hour while the app runs.
+        viewModelScope.launch {
+            while (true) {
+                feedSource.download()?.let { if (it.updatedAt != feed.value?.updatedAt) feed.value = it }
+                delay(60 * 60 * 1000L)
+            }
+        }
+    }
+
+    private val ownData: Flow<DataState> = auth.flatMapLatest { a ->
         val r = repo
         if (a !is AuthUi.SignedIn || r == null) {
             flowOf(DataState())
@@ -105,6 +127,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 DataState(t.value, c.value, s, sync)
             }
         }
+    }
+
+    val data: StateFlow<DataState> = combine(ownData, feed) { d, f ->
+        d.copy(autoTasks = Football.tasks(f, d.settings))
     }.stateIn(viewModelScope, SharingStarted.Eagerly, DataState())
 
     /** Ticks every 30 s so the list rolls over to a new day by itself. */

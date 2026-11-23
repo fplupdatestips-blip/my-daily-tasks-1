@@ -96,14 +96,14 @@ fun TodayScreen(
     val c = LocalAppColors.current
     val view = LocalView.current
     val weekStart = data.settings.firstDayOfWeek
-    val items = remember(data, date, today) { TodayItems.forDay(data.tasks, data.completions, date, today, weekStart) }
+    val items = remember(data, date, today) { TodayItems.forDay(data.allTasks, data.completions, date, today, weekStart) }
     val open = items.filter { !it.done && !it.skipped }
     val finished = items.filter { it.done || it.skipped }
     val doneCount = items.count { it.done }
     var showDone by rememberSaveable { mutableStateOf(false) }
     var dismissedMissed by rememberSaveable(today) { mutableStateOf(false) }
     val missedYesterday = remember(data, today, date) {
-        if (date != today) 0 else TodayItems.forDay(data.tasks, data.completions, today.minusDays(1), today, weekStart)
+        if (date != today) 0 else TodayItems.forDay(data.allTasks, data.completions, today.minusDays(1), today, weekStart)
             .count { !it.done && !it.skipped && it.task.repeat.type != RepeatType.NONE }
     }
 
@@ -226,7 +226,7 @@ private fun WeekStrip(data: DataState, today: LocalDate, date: LocalDate, setDat
         (0L until 7L).forEach { i ->
             val d = start.plusDays(i)
             val sel = d == date
-            val its = remember(data, d, today) { TodayItems.forDay(data.tasks, data.completions, d, today, data.settings.firstDayOfWeek) }
+            val its = remember(data, d, today) { TodayItems.forDay(data.allTasks, data.completions, d, today, data.settings.firstDayOfWeek) }
             val all = its.isNotEmpty() && its.all { it.done || it.skipped } && !d.isAfter(today)
             val bg = if (sel) c.primary else Color.Transparent
             val fg = when {
@@ -307,8 +307,7 @@ fun TaskCard(
             .semantics {
                 customActions = listOf(
                     CustomAccessibilityAction(if (item.skipped) "Unskip" else "Skip today") { onSkip(); true },
-                    CustomAccessibilityAction("Edit") { onEdit(); true },
-                )
+                ) + if (t.auto == null) listOf(CustomAccessibilityAction("Edit") { onEdit(); true }) else emptyList()
             },
     ) {
         Row(Modifier.padding(start = 12.dp, end = 4.dp, top = 12.dp, bottom = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -351,7 +350,7 @@ fun TaskCard(
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                     DropdownMenuItem(text = { Text(if (item.done) "Mark not done" else "Mark done") }, onClick = { menu = false; onToggle() })
                     DropdownMenuItem(text = { Text(if (item.skipped) "Unskip" else "Skip today") }, onClick = { menu = false; onSkip() })
-                    DropdownMenuItem(text = { Text("Edit") }, onClick = { menu = false; onEdit() })
+                    if (t.auto == null) DropdownMenuItem(text = { Text("Edit") }, onClick = { menu = false; onEdit() })
                     DropdownMenuItem(text = { Text("Details") }, onClick = { menu = false; onOpen() })
                 }
             }

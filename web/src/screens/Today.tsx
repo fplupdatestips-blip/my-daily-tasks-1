@@ -3,6 +3,7 @@ import { addDays, isoWeekday, longLabel, parts, startOfWeek, weekdayShort, type 
 import type { Task } from '../core/model';
 import { GROUPS, itemsForDay, type TodayItem } from '../core/today';
 import { skip, toggleDone, toggleSubtask } from '../data/actions';
+import { useAllTasks } from '../data/football';
 import { useAppState, useStore } from '../ui/hooks';
 import { Icon } from '../ui/icons';
 import { TEMPLATES } from './templates';
@@ -23,7 +24,8 @@ interface Props {
 
 export function Today({ today, date, setDate, dark, wide, selectedId, onOpen, onEdit, onUndo, topBar }: Props) {
   const store = useStore();
-  const { tasks, completions, settings } = useAppState();
+  const { tasks: ownTasks, completions, settings } = useAppState();
+  const tasks = useAllTasks(ownTasks, settings);
   const [showDone, setShowDone] = useState(false);
   const [quick, setQuick] = useState('');
   const items = useMemo(() => itemsForDay(tasks, completions, date, today, settings.firstDayOfWeek), [tasks, completions, date, today, settings.firstDayOfWeek]);
@@ -184,7 +186,7 @@ export function Today({ today, date, setDate, dark, wide, selectedId, onOpen, on
           </form>
         )}
 
-        {items.length === 0 && tasks.length === 0 && (
+        {items.length === 0 && ownTasks.length === 0 && (
           <section className="flex flex-col items-center gap-4 rounded-3xl bg-surface px-6 py-10 text-center">
             <span className="flex size-16 items-center justify-center rounded-3xl bg-primary-container text-on-primary-container">
               <Icon name="today" size={30} />
@@ -201,7 +203,7 @@ export function Today({ today, date, setDate, dark, wide, selectedId, onOpen, on
             </div>
           </section>
         )}
-        {items.length === 0 && tasks.length > 0 && (
+        {items.length === 0 && ownTasks.length > 0 && (
           <p className="py-10 text-center text-text2">Nothing due {isToday ? 'today' : `on ${longLabel(date)}`}.</p>
         )}
 

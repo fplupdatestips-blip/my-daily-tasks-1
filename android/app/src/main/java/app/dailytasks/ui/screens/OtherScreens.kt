@@ -297,6 +297,24 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
                 }
                 Text("Ticks before this time count for the day before.", fontSize = 13.sp, color = c.text2, modifier = Modifier.padding(bottom = 8.dp))
             }
+            Card("Football") {
+                listOf(
+                    Triple("FPL deadlines", "Each gameweek deadline, added automatically", data.settings.fplDeadlines),
+                    Triple("Match Coverage", "Every match a Premier League team plays, in any competition", data.settings.matchCoverage),
+                ).forEachIndexed { i, (title, sub, on) ->
+                    Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(title, color = c.text, fontSize = 15.sp)
+                            Text(sub, color = c.text2, fontSize = 13.sp)
+                        }
+                        Switch(
+                            checked = on,
+                            onCheckedChange = { v -> vm.saveSettings(if (i == 0) data.settings.copy(fplDeadlines = v) else data.settings.copy(matchCoverage = v)) },
+                            colors = SwitchDefaults.colors(checkedTrackColor = c.primary),
+                        )
+                    }
+                }
+            }
             Card("Account") {
                 Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
