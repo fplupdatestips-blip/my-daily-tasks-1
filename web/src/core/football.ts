@@ -63,6 +63,7 @@ export function footballTasks(feed: FootballFeed | null, settings: Pick<Settings
       out.push({
         ...base(deadlineTaskId(d.gw), 'FPL_DEADLINE'),
         name: `FPL GW${d.gw} deadline`,
+        shortName: `GW${d.gw} deadline`,
         description: `${d.name} deadline at ${time}. Transfers, captain and chips locked in by then.`,
         icon: 'deadline',
         color: 'purple',
@@ -80,6 +81,7 @@ export function footballTasks(feed: FootballFeed | null, settings: Pick<Settings
       out.push({
         ...base(matchTaskId(m.id), 'MATCH'),
         name: `Match Coverage: ${m.home.short} v ${m.away.short}`,
+        shortName: `${m.home.short} v ${m.away.short}`,
         description: `${m.home.name} v ${m.away.name} · ${bits.join(' · ')}`,
         icon: 'football',
         color: 'green',

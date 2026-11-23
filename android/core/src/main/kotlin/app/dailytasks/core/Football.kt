@@ -50,6 +50,7 @@ object Football {
                 out += Task(
                     id = deadlineTaskId(d.gw),
                     name = "FPL GW${d.gw} deadline",
+                    shortName = "GW${d.gw} deadline",
                     description = "${d.name} deadline at $time. Transfers, captain and chips locked in by then.",
                     icon = "deadline",
                     color = "purple",
@@ -68,6 +69,7 @@ object Football {
                 out += Task(
                     id = matchTaskId(m.id),
                     name = "Match Coverage: ${m.home.short} v ${m.away.short}",
+                    shortName = "${m.home.short} v ${m.away.short}",
                     description = "${m.home.name} v ${m.away.name} · ${bits.joinToString(" · ")}",
                     icon = "football",
                     color = "green",

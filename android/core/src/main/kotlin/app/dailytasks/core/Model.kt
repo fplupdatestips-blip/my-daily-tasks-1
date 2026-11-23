@@ -67,6 +67,8 @@ data class Task(
     val pausedUntil: LocalDate? = null,
     /** Made by the app from the football feed, never saved: "FPL_DEADLINE" or "MATCH". */
     val auto: String? = null,
+    /** Auto tasks: a shorter label for the small calendar chips. */
+    val shortName: String? = null,
 )
 
 enum class CompletionStatus { DONE, SKIPPED, PARTIAL }

@@ -68,6 +68,8 @@ export interface Task {
   deleted?: boolean;
   /** Made by the app from the football feed, never saved: FPL deadline or match. */
   auto?: 'FPL_DEADLINE' | 'MATCH';
+  /** Auto tasks: a shorter label for the small calendar chips. */
+  shortName?: string;
 }
 
 export type CompletionStatus = 'DONE' | 'SKIPPED' | 'PARTIAL';

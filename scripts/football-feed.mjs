@@ -45,7 +45,7 @@ function toMatch(e) {
   if (!c) return null;
   const side = (ha) => {
     const t = c.competitors.find((x) => x.homeAway === ha)?.team ?? {};
-    return { id: String(t.id ?? ''), name: t.displayName ?? '?', short: t.shortDisplayName ?? t.displayName ?? '?', abbr: t.abbreviation ?? '' };
+    return { id: String(t.id ?? ''), name: (t.displayName ?? '?').trim(), short: (t.shortDisplayName ?? t.displayName ?? '?').trim(), abbr: t.abbreviation ?? '' };
   };
   const status = c.status?.type ?? e.status?.type ?? {};
   return {

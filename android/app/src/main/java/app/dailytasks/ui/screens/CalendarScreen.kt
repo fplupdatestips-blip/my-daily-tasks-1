@@ -210,7 +210,7 @@ private fun DayCell(d: LocalDate, items: List<TodayItem>, today: LocalDate, sel:
             val (tint, fg) = taskColors(i.task.color, c.dark)
             val finished = i.done || i.skipped
             Text(
-                i.task.name,
+                i.task.shortName ?: i.task.name,
                 fontSize = 10.sp, lineHeight = 12.sp, fontWeight = FontWeight.Medium,
                 color = if (finished) fg.copy(alpha = 0.5f) else fg,
                 textDecoration = if (i.done) TextDecoration.LineThrough else null,

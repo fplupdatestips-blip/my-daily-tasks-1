@@ -123,7 +123,7 @@ export function Calendar({ today, dark, onOpen, onOpenDay, topBar }: Props) {
                         style={{ background: tint, color: fg }}
                       >
                         {wide && (i.task.image ? <img src={i.task.image} alt="" className="size-4 flex-none rounded object-cover" /> : <Icon name={i.task.icon} size={13} strokeWidth={2.2} className="flex-none" />)}
-                        <span className={`overflow-hidden whitespace-nowrap sm:text-ellipsis ${i.done ? 'line-through' : ''}`}>{i.task.name}</span>
+                        <span className={`overflow-hidden whitespace-nowrap sm:text-ellipsis ${i.done ? 'line-through' : ''}`}>{i.task.shortName ?? i.task.name}</span>
                       </span>
                     );
                   })}
