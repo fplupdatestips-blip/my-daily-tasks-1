@@ -166,8 +166,8 @@ export function App() {
       )}
 
       <div className={`flex min-w-0 flex-1 justify-center ${desktop ? 'gap-0' : ''}`}>
-        <div className={`w-full ${tab === 'calendar' ? 'max-w-[1100px]' : 'max-w-[720px]'}`}>{main}</div>
-        {desktop && (
+        <div className={`w-full min-w-0 ${tab === 'calendar' ? 'max-w-[1100px]' : 'max-w-[720px]'}`}>{main}</div>
+        {desktop && (panelContent || tab !== 'calendar') && (
           <aside aria-label="Details" className="sticky top-0 h-dvh w-[420px] flex-none overflow-hidden border-l border-divider">
             {panelContent ?? (
               <div className="flex h-full flex-col items-center justify-center gap-2 p-8 text-center text-text2">

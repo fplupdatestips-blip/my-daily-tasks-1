@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { longLabel, monthLong, parts, weekdayShort, type LocalDate } from '../core/dates';
+import { addDays, isoWeekday, longLabel, monthLong, parts, startOfWeek, weekdayShort, type LocalDate } from '../core/dates';
 import { describeRepeat, formatTime } from '../core/describe';
 import type { Task } from '../core/model';
 import { calendarItems, monthGrid } from '../core/calendar';
@@ -26,6 +26,24 @@ export function Calendar({ today, dark, onOpen, onOpenDay, topBar }: Props) {
   const wide = useMedia('(min-width: 600px)');
   const [month, setMonth] = useState(() => ({ y: parts(today).y, m: parts(today).m }));
   const [selected, setSelected] = useState<LocalDate>(today);
+  const [view, setViewState] = useState<'week' | 'month'>(() => {
+    try {
+      return localStorage.getItem('dt.calView') === 'month' ? 'month' : 'week';
+    } catch {
+      return 'week';
+    }
+  });
+  const setView = (v: 'week' | 'month') => {
+    setViewState(v);
+    try {
+      localStorage.setItem('dt.calView', v);
+    } catch {
+      /* ignore */
+    }
+  };
+  const [weekOf, setWeekOf] = useState<LocalDate>(() => startOfWeek(today, weekStart));
+  const weekDays = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(startOfWeek(weekOf, weekStart), i)), [weekOf, weekStart]);
+  const weekItems = useMemo(() => weekDays.map((d) => calendarItems(tasks, completions, d, today, weekStart)), [weekDays, tasks, completions, today, weekStart]);
 
   const rows = useMemo(() => monthGrid(month.y, month.m, weekStart), [month, weekStart]);
   const byDay = useMemo(() => {
@@ -46,8 +64,19 @@ export function Calendar({ today, dark, onOpen, onOpenDay, topBar }: Props) {
   const goToday = () => {
     setMonth({ y: parts(today).y, m: parts(today).m });
     setSelected(today);
+    setWeekOf(startOfWeek(today, weekStart));
   };
   const isThisMonth = month.y === parts(today).y && month.m === parts(today).m;
+  const isThisWeek = weekDays.includes(today);
+  const move = (n: number) => (view === 'week' ? setWeekOf((w) => addDays(w, 7 * n)) : shift(n));
+  const unit = view === 'week' ? 'week' : 'month';
+  const first = weekDays[0];
+  const last = weekDays[6];
+  const mShort = (d: LocalDate) => monthLong(parts(d).m).slice(0, 3);
+  const weekLabel =
+    parts(first).m === parts(last).m
+      ? `${mShort(first)} ${parts(first).d} – ${parts(last).d}`
+      : `${mShort(first)} ${parts(first).d} – ${mShort(last)} ${parts(last).d}`;
   const headers = Array.from({ length: 7 }, (_, i) => ((weekStart - 1 + i) % 7) + 1);
   const doneCount = dayItems.filter((i) => i.done).length;
 
@@ -56,23 +85,35 @@ export function Calendar({ today, dark, onOpen, onOpenDay, topBar }: Props) {
       <ScreenHeader title="Calendar" right={topBar} />
       <div className="flex flex-col gap-4 px-4 pb-32">
         <section className="-mx-2 flex flex-col gap-2 rounded-[20px] bg-surface p-2 sm:mx-0 sm:p-3">
-          <div className="flex items-center gap-1">
-            <button type="button" aria-label="Previous month" onClick={() => shift(-1)} className="flex size-10 items-center justify-center rounded-full text-text2 hover:bg-surface2">
+          <div className="flex flex-wrap items-center gap-1">
+            <button type="button" onClick={goToday} disabled={view === 'week' ? isThisWeek : isThisMonth} className="h-10 rounded-xl border border-outline px-4 text-sm font-semibold hover:bg-surface2 disabled:opacity-50">
+              Today
+            </button>
+            <button type="button" aria-label={`Previous ${unit}`} onClick={() => move(-1)} className="flex size-10 items-center justify-center rounded-full text-text2 hover:bg-surface2">
               <Icon name="chevronLeft" size={18} />
             </button>
-            <h2 className="m-0 flex-1 text-center text-base font-semibold" aria-live="polite">
-              {monthLong(month.m)} {month.y}
-            </h2>
-            <button type="button" aria-label="Next month" onClick={() => shift(1)} className="flex size-10 items-center justify-center rounded-full text-text2 hover:bg-surface2">
+            <button type="button" aria-label={`Next ${unit}`} onClick={() => move(1)} className="flex size-10 items-center justify-center rounded-full text-text2 hover:bg-surface2">
               <Icon name="chevronRight" size={18} />
             </button>
+            <h2 className="order-last m-0 w-full truncate pl-1 pt-1 text-base font-semibold sm:order-none sm:w-auto sm:flex-1 sm:pt-0 sm:text-lg" aria-live="polite">
+              {view === 'week' ? weekLabel : `${monthLong(month.m)} ${month.y}`}
+            </h2>
+            <div role="group" aria-label="Calendar view" className="ml-auto flex rounded-xl bg-surface2 p-1">
+              {(['week', 'month'] as const).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  aria-pressed={view === v}
+                  onClick={() => setView(v)}
+                  className={`h-8 rounded-lg px-3 text-sm font-semibold ${view === v ? 'bg-surface text-text shadow-sm' : 'text-text2 hover:text-text'}`}
+                >
+                  {v === 'week' ? 'Week' : 'Month'}
+                </button>
+              ))}
+            </div>
           </div>
-          {!isThisMonth && (
-            <button type="button" onClick={goToday} className="mx-auto h-9 rounded-full px-4 text-sm font-semibold text-primary hover:bg-surface2">
-              Back to today
-            </button>
-          )}
-          <div className="grid grid-cols-7 overflow-hidden rounded-xl border border-divider" role="grid" aria-label={`${monthLong(month.m)} ${month.y}`}>
+          {view === 'week' && <WeekGrid days={weekDays} items={weekItems} today={today} dark={dark} onOpen={onOpen} onOpenDay={onOpenDay} />}
+          {view === 'month' && <div className="grid grid-cols-7 overflow-hidden rounded-xl border border-divider" role="grid" aria-label={`${monthLong(month.m)} ${month.y}`}>
             {headers.map((w) => (
               <div key={w} role="columnheader" className="border-b border-divider py-1.5 text-center text-xs font-medium text-text2">
                 {weekdayShort(w)}
@@ -131,10 +172,10 @@ export function Calendar({ today, dark, onOpen, onOpenDay, topBar }: Props) {
                 </button>
               );
             })}
-          </div>
+          </div>}
         </section>
 
-        <section className="flex flex-col gap-2" aria-labelledby="cal-day">
+        {view === 'month' && <section className="flex flex-col gap-2" aria-labelledby="cal-day">
           <div className="flex items-center gap-2 px-1">
             <div className="flex flex-1 flex-col">
               <h2 id="cal-day" className="m-0 text-lg font-semibold">
@@ -151,7 +192,7 @@ export function Calendar({ today, dark, onOpen, onOpenDay, topBar }: Props) {
           {dayItems.map((i) => (
             <DayRow key={i.task.id} item={i} date={selected} today={today} dark={dark} onOpen={() => onOpen(i.task)} />
           ))}
-        </section>
+        </section>}
       </div>
     </div>
   );
@@ -172,6 +213,59 @@ function DayRow({ item, date, today, dark, onOpen }: { item: TodayItem; date: Lo
       {status && (
         <span className={`flex-none rounded-full px-2.5 py-1 text-xs font-semibold ${done ? 'bg-done text-on-done' : item.late || status === 'Not done' ? 'bg-amber-tint text-streak' : 'bg-surface2 text-text2'}`}>{status}</span>
       )}
+    </button>
+  );
+}
+
+/** A week as seven columns of cards, one card per task (like a content calendar). */
+function WeekGrid({ days, items, today, dark, onOpen, onOpenDay }: { days: LocalDate[]; items: TodayItem[][]; today: LocalDate; dark: boolean; onOpen: (t: Task) => void; onOpenDay: (d: LocalDate) => void }) {
+  return (
+    <div className="-mx-2 overflow-x-auto px-2 pb-1 sm:mx-0 sm:px-0">
+      <div className="grid min-w-[880px] grid-cols-7 gap-2">
+        {days.map((d, idx) => {
+          const isToday = d === today;
+          const its = items[idx];
+          return (
+            <section key={d} aria-label={`${isToday ? 'Today, ' : ''}${longLabel(d)}, ${its.length} ${its.length === 1 ? 'task' : 'tasks'}`} className={`flex min-h-[420px] min-w-0 flex-col rounded-2xl border bg-bg ${isToday ? 'border-primary' : 'border-divider'}`}>
+              <button type="button" onClick={() => onOpenDay(d)} title="Open this day" className="flex flex-col items-center gap-1 border-b border-divider py-2.5 hover:bg-surface2">
+                <span className="text-xs font-medium text-text2">{weekdayShort(isoWeekday(d))}</span>
+                <span className={`flex size-8 items-center justify-center rounded-full text-base font-semibold ${isToday ? 'bg-primary text-on-primary' : d < today ? 'text-text2' : ''}`}>{parts(d).d}</span>
+              </button>
+              <div className="flex flex-col gap-1.5 p-1.5">
+                {its.map((i) => (
+                  <WeekCard key={i.task.id} item={i} date={d} today={today} dark={dark} onOpen={() => onOpen(i.task)} />
+                ))}
+              </div>
+            </section>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+const TOD: Record<string, string> = { MORNING: 'Morning', AFTERNOON: 'Afternoon', EVENING: 'Evening', ANYTIME: 'Any time' };
+
+function WeekCard({ item, date, today, dark, onOpen }: { item: TodayItem; date: LocalDate; today: LocalDate; dark: boolean; onOpen: () => void }) {
+  const { task, done, skipped } = item;
+  const missed = !done && !skipped && date < today;
+  const status = done ? { label: 'Done', icon: 'check', cls: 'bg-done/15 text-done' } : skipped ? { label: 'Skipped', icon: 'skip', cls: 'bg-surface2 text-text2' } : missed ? { label: 'Missed', icon: 'close', cls: 'bg-amber-tint text-streak' } : { label: 'To do', icon: 'bell', cls: 'bg-surface2 text-text2' };
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      title={task.name}
+      className={`flex min-w-0 items-start gap-1.5 rounded-xl border p-1.5 text-left shadow-sm transition-colors ${done ? 'border-done/30 bg-done/10' : 'border-divider bg-surface hover:bg-surface2'}`}
+    >
+      <TaskIcon task={task} dark={dark} size={36} iconSize={18} radius="0.55rem" className="self-start" />
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="text-sm font-bold leading-tight">{task.time ?? TOD[task.timeOfDay]}</span>
+        <span className={`truncate text-xs text-text2 ${done ? 'line-through' : ''}`}>{task.shortName ?? task.name}</span>
+        <span className={`inline-flex items-center gap-1 self-start whitespace-nowrap rounded-md px-1.5 py-0.5 text-[11px] font-semibold ${status.cls}`}>
+          <Icon name={status.icon} size={11} strokeWidth={2.6} />
+          {status.label}
+        </span>
+      </span>
     </button>
   );
 }
